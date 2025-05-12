@@ -15,8 +15,8 @@ public class DataBaseTest {
     @PostConstruct
     public void init() {
         // 查看 users 表的数据
-        jdbcTemplate.queryForList("SELECT * FROM User")
-                .forEach(row -> System.out.println(row));
+        // jdbcTemplate.queryForList("SELECT * FROM User")
+        //         .forEach(row -> System.out.println(row));
 
     }
 }

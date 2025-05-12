@@ -4,10 +4,11 @@ import java.sql.SQLException;
 
 import com.Main.entity.User;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.NonNull;
 
 public class UserRowMapper implements RowMapper<User> {
     @Override
-    public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public User mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
         User user = new User();
         user.setId(rs.getInt("UserId"));
         user.setEmail(rs.getString("UserEmail"));
