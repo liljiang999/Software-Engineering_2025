@@ -9,7 +9,5 @@ public interface ClassroomManager {
     public void addClassroom(Classroom classroom);
     public void deleteClassroom(int classroomId);
     public void updateClassroom(int classroomId, Classroom updateInfo);
-    
-    //TODO: 改成ClassroomFilter类
     public List<Classroom> queryClassrooms(Classroom classroomFilter);
 }

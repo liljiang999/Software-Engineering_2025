@@ -1,59 +1,59 @@
 package com.Main.entity;
 
 public class Course {
-    private int CourseId;
-    private String CourseName;
-    private String CourseDescription;
-    private int TeacherId;
-    private float Credit;
-    private String Category;
+    private int courseId;
+    private String courseName;
+    private String courseDescription;
+    private int teacherId;
+    private float credit;
+    private String category;
 
     public int getId() {
-        return CourseId;
+        return courseId;
     }
 
-    public void setId(int CourseId) {
-        this.CourseId = CourseId;
+    public void setId(int courseId) {
+        this.courseId = courseId;
     }
 
     public String getName() {
-        return CourseName;
+        return courseName;
     }
 
-    public void setName(String CourseName) {
-        this.CourseName = CourseName;
+    public void setName(String courseName) {
+        this.courseName = courseName;
     }
 
     public String getDescription() {
-        return CourseDescription;
+        return courseDescription;
     }
 
-    public void setDescription(String CourseDescription) {
-        this.CourseDescription = CourseDescription;
+    public void setDescription(String courseDescription) {
+        this.courseDescription = courseDescription;
     }
 
     public int getTeacherId() {
-        return TeacherId;
+        return teacherId;
     }   
 
-    public void setTeacherId(int TeacherId) {
-        this.TeacherId = TeacherId;
+    public void setTeacherId(int teacherId) {
+        this.teacherId = teacherId;
     }
 
     public float getCredit() {
-        return Credit;
+        return credit;
     }
 
-    public void setCredit(float Credit) {
-        this.Credit = Credit;
+    public void setCredit(float credit) {
+        this.credit = credit;
     }
 
     public String getCategory() {
-        return Category;
+        return category;
     }
 
-    public void setCategory(String Category) {
-        this.Category = Category;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     @Override

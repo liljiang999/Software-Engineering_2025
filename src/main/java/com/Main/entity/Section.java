@@ -1,68 +1,68 @@
 package com.Main.entity;
 
 public class Section {
-    private int SectionId;
-    private int CourseId;
-    private int ClassroomId;
-    private int Capacity;
-    private String Semester;
-    private int SecYear;
-    private String SecTime; //开课时间，格式暂定为"Monday 1,2; Wednesday 6,7,8"
+    private int sectionId;
+    private int courseId;
+    private int classroomId;
+    private int capacity;
+    private String semester; // 春夏，秋冬
+    private int secYear;
+    private String secTime; //开课时间，格式暂定为"Monday 1,2; Wednesday 6,7,8"
 
     public int getId() {
-        return SectionId;
+        return sectionId;
     }
 
-    public void setId(int SectionId) {
-        this.SectionId = SectionId;
+    public void setId(int sectionId) {
+        this.sectionId = sectionId;
     }
 
     public int getCourseId() {
-        return CourseId;
+        return courseId;
     }
 
-    public void setCourseId(int CourseId) {
-        this.CourseId = CourseId;
+    public void setCourseId(int courseId) {
+        this.courseId = courseId;
     }
 
     public int getClassroomId() {
-        return ClassroomId;
+        return classroomId;
     }
 
-    public void setClassroomId(int ClassroomId) {
-        this.ClassroomId = ClassroomId;
+    public void setClassroomId(int classroomId) {
+        this.classroomId = classroomId;
     }
 
     public int getCapacity() {
-        return Capacity;
+        return capacity;
     }
 
-    public void setCapacity(int Capacity) {
-        this.Capacity = Capacity;
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
     }
 
     public String getSemester() {
-        return Semester;
+        return semester;
     }
 
-    public void setSemester(String Semester) {
-        this.Semester = Semester;
+    public void setSemester(String semester) {
+        this.semester = semester;
     }
 
     public int getSecYear() {
-        return SecYear;
+        return secYear;
     }
 
-    public void setSecYear(int SecYear) {
-        this.SecYear = SecYear;
+    public void setSecYear(int secYear) {
+        this.secYear = secYear;
     }
 
     public String getSecTime() {
-        return SecTime;
+        return secTime;
     }
 
-    public void setSecTime(String SecTime) {
-        this.SecTime = SecTime;
+    public void setSecTime(String secTime) {
+        this.secTime = secTime;
     }
 
     @Override

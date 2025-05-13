@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.Main.service.lesson.LessonScheduler;
 import com.Main.entity.Classroom;
 import com.Main.entity.Section;
+import com.Main.entity.lesson.LessonScheduleFilter;
 import com.Main.entity.Course;
 import java.util.List;
 import org.slf4j.Logger;
@@ -39,15 +40,14 @@ public class LessonController {
         lessonScheduler.deleteClassroom(classroomId);
     }
 
-    //TODO: 改成ClassroomFilter类
     @PostMapping("/classrooms/query")
     public List<Classroom> queryClassrooms(@RequestBody Classroom filter) {
         return lessonScheduler.queryClassrooms(filter);
     }
     
     @PostMapping("/schedules/generate")
-    public void generateSchedule(@RequestBody List<Course> courses) {
-        lessonScheduler.generateSchedule(courses);
+    public void generateSchedule(@RequestBody List<Course> courses, @RequestBody LessonScheduleFilter filter) {
+        lessonScheduler.generateSchedule(courses, filter);
     }
 
     @PostMapping("/schedules")
@@ -77,7 +77,12 @@ public class LessonController {
     }
 
     @GetMapping("/schedules")
-    public List<Section> getSchedules() {
-        return lessonScheduler.showSchedule();
+    public List<Section> getSchedules(@RequestBody Section sectionFilter) {
+        return lessonScheduler.showSchedule(sectionFilter);
+    }
+
+    @GetMapping("/schedules/teacher/{teacher_id}")
+    public List<Section> getSchedulesByTeacherId(@PathVariable("teacher_id") int teacherId) {
+        return lessonScheduler.showSchedule(teacherId);
     }
 }

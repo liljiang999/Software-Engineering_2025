@@ -1,16 +1,16 @@
 package com.Main.entity;
 
 public class Classroom {
-    private int ClassroomId;
+    private int classroomId = -1;
     private String location;
-    private int capacity;
+    private int capacity = 0;
 
     public int getId() {
-        return ClassroomId;
+        return classroomId;
     }
 
-    public void setId(int ClassroomId) {
-        this.ClassroomId = ClassroomId;
+    public void setId(int classroomId) {
+        this.classroomId = classroomId;
     }
 
     public String getLocation() {
