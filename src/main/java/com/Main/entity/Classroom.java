@@ -4,6 +4,7 @@ public class Classroom {
     private int classroomId = -1;
     private String location;
     private int capacity = 0;
+    private String category;
 
     public int getId() {
         return classroomId;
@@ -29,8 +30,15 @@ public class Classroom {
         this.capacity = capacity;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
     @Override
     public String toString() {
-        return String.format("Classroom[id=%d, location='%s', capacity=%d]", getId(), getLocation(), getCapacity());
+        return String.format("Classroom[id=%d, location='%s', capacity=%d, category='%s']", getId(), getLocation(), getCapacity(), getCategory());
     }
 }

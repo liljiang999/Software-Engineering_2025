@@ -8,22 +8,310 @@ import com.Main.RowMapper.ClassroomRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Random;
+import java.util.HashMap;
 import com.Main.entity.lesson.LessonScheduleFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Component
 public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
     
+    //logger
+    private static final Logger logger = LoggerFactory.getLogger(LessonScheduler.class);
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @Override
-    public void generateSchedule(List<Course> courses, LessonScheduleFilter filter) {
-        // TODO: 实现自动排课算法
-        for (Course course : courses) {
-            // 为每个课程生成课程安排
-            // 需要考虑教室容量、时间冲突等因素
+    private void deleteCurrentSchedule(String semester, int secYear) {
+        String sql = "DELETE FROM section WHERE semester = ? AND sec_year = ?";
+        jdbcTemplate.update(sql, semester, secYear);
+    }
+
+    private class Arrangement implements Comparable<Arrangement> {
+        //周几
+        public enum Week{
+            MONDAY(1, "Monday"),
+            TUESDAY(2, "Tuesday"),
+            WEDNESDAY(3, "Wednesday"),
+            THURSDAY(4, "Thursday"),
+            FRIDAY(5, "Friday"),
+            SATURDAY(6, "Saturday"),
+            SUNDAY(7, "Sunday");
+
+            private final int value;
+            private final String name;
+
+            Week(int value, String name) {
+                this.value = value;
+                this.name = name;
+            }
+
+            public int getValue() {
+                return value;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public static Week fromInt(int value) {
+                for (Week week : Week.values()) {
+                    if (week.value == value) {
+                        return week;
+                    }
+                }
+                throw new IllegalArgumentException("Invalid week value: " + value);
+            }
+
+            public static Week fromString(String name) {
+                for (Week week : Week.values()) {
+                    if (week.name.equalsIgnoreCase(name)) {
+                        return week;
+                    }
+                }
+                throw new IllegalArgumentException("Invalid week name: " + name);
+            }
+        };
+        //节数
+        Week week;
+        public String time;//"1,2,3"
+        public double arrangedCount;//当前时间点已经安排的课程数(可能是三节课的平均值)
+        Arrangement(Week week, String time, double arrangedCount){
+            this.week = week;
+            this.time = time;
+            this.arrangedCount = arrangedCount;
         }
+        Arrangement(int week, String time, double arrangedCount){
+            this.week = Week.fromInt(week);
+            this.time = time;
+            this.arrangedCount = arrangedCount;
+        }
+        //从小到大排序
+        @Override
+        public int compareTo(Arrangement o) {
+            return Double.compare(this.arrangedCount, o.arrangedCount);
+        }
+    }
+
+    private void addPossibleTimeToHeap(PriorityQueue<Arrangement> heap,int hoursPerWeek, int[][] record) {
+        //根据连堂节数判断可以安排的时间
+        //1.连堂三节，可以安排的时间为：
+        //   - 上午：3 4 5
+        //   - 下午：6 7 8
+        //   - 晚上：11 12 13
+        if(hoursPerWeek == 3){
+            for(int i = 1; i <= 5; i++){
+                heap.add(new Arrangement(i, "3,4,5", (record[i][3] + record[i][4] + record[i][5]) / 3.0));
+                heap.add(new Arrangement(i, "6,7,8", (record[i][6] + record[i][7] + record[i][8]) / 3.0));
+                heap.add(new Arrangement(i, "11,12,13", (record[i][11] + record[i][12] + record[i][13]) / 3.0));
+            }
+            //周末降低优先级
+            for(int i = 6; i <= 7; i++){
+                heap.add(new Arrangement(i, "3,4,5", (record[i][3] + record[i][4] + record[i][5]) / 3.0 * 10));
+                heap.add(new Arrangement(i, "6,7,8", (record[i][6] + record[i][7] + record[i][8]) / 3.0 * 10));
+                heap.add(new Arrangement(i, "11,12,13", (record[i][11] + record[i][12] + record[i][13]) / 3.0 * 10)); 
+            }
+        }
+
+
+        //2.连堂两节，可以安排的时间为：
+        //   - 上午：1 2
+        //   - 上午：3 4
+        //   - 下午：6 7
+        //   - 下午：7 8
+        //   - 晚上：11 12
+        if(hoursPerWeek == 2){
+            for(int i = 1; i <= 5; i++){
+                heap.add(new Arrangement(i, "1,2", (record[i][1] + record[i][2]) / 2.0));
+                heap.add(new Arrangement(i, "3,4", (record[i][3] + record[i][4]) / 2.0));
+                heap.add(new Arrangement(i, "6,7", (record[i][6] + record[i][7]) / 2.0));
+                heap.add(new Arrangement(i, "7,8", (record[i][7] + record[i][8]) / 2.0));
+                heap.add(new Arrangement(i, "11,12", (record[i][11] + record[i][12]) / 2.0));
+            }
+            //周末降低优先级
+            for(int i = 6; i <= 7; i++){
+                heap.add(new Arrangement(i, "1,2", (record[i][1] + record[i][2]) / 2.0 * 10));
+                heap.add(new Arrangement(i, "3,4", (record[i][3] + record[i][4]) / 2.0 * 10));
+                heap.add(new Arrangement(i, "6,7", (record[i][6] + record[i][7]) / 2.0 * 10));
+                heap.add(new Arrangement(i, "7,8", (record[i][7] + record[i][8]) / 2.0 * 10));
+                heap.add(new Arrangement(i, "11,12", (record[i][11] + record[i][12]) / 2.0 * 10));
+            }
+        }
+        //3.连堂一节，可以安排的时间为：
+        //   1-13 均可
+        if(hoursPerWeek == 1){
+            for(int i = 1; i <= 5; i++){
+                for(int j = 1; j <= 13; j++){
+                    heap.add(new Arrangement(i, String.valueOf(j), (record[i][j]) / 1.0));
+                }
+            }
+            for(int i = 6; i <= 7; i++){
+                for(int j = 1; j <= 13; j++){
+                    heap.add(new Arrangement(i, String.valueOf(j), (record[i][j]) / 1.0 * 10));
+                }
+            }
+        }
+
+    }
+
+
+    @Override
+    public void generateSchedule(List<Course> undistributedCourses, LessonScheduleFilter filter) {
+        var semester = filter.getSemester();
+        var secYear = filter.getSecYear();
+        // 排课之前，删除掉当前学期、学年的课程安排
+        deleteCurrentSchedule(semester, secYear);
+        List<Course>courses = new ArrayList<>();
+        //拆分学时>3的课程
+        for (Course course : undistributedCourses) {
+            if(course.getHoursPerWeek() == 4){
+                courses.add(new Course(course, 2));
+                courses.add(new Course(course, 2));
+            }
+            else if(course.getHoursPerWeek() == 5){
+                courses.add(new Course(course, 3));
+                courses.add(new Course(course, 2));
+            }
+            else if(course.getHoursPerWeek() == 6){
+                courses.add(new Course(course, 3));
+                courses.add(new Course(course, 3));
+            }
+            else if(course.getHoursPerWeek() == 7){
+                courses.add(new Course(course, 3));
+                courses.add(new Course(course, 2));
+                courses.add(new Course(course, 2));
+            }
+            else {
+                courses.add(course);
+            }
+        }
+
+        //按照hoursPerWeek排序courses
+        Collections.sort(courses, new Comparator<Course>() {
+            @Override
+            public int compare(Course c1, Course c2) {
+                return Integer.compare(c2.getHoursPerWeek(), c1.getHoursPerWeek());
+            }
+        });
+        
+        int[][] record = new int[8][20];
+        Map<Integer, boolean[][]> teacherTimeMap = new HashMap<>();
+        List<Section> sections = new ArrayList<>();
+        
+        for (Course course : courses) {
+            int teacherId = course.getTeacherId();
+            if (!teacherTimeMap.containsKey(teacherId)) {
+                teacherTimeMap.put(teacherId, new boolean[8][20]);
+                boolean[][] teacherTime = teacherTimeMap.get(teacherId);
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 20; j++) {
+                        teacherTime[i][j] = false;
+                    }
+                }
+            }
+            var heap = new PriorityQueue<Arrangement>();
+            addPossibleTimeToHeap(heap, course.getHoursPerWeek(), record);
+            boolean successArrange = false;
+            do {
+                Arrangement times = heap.poll();
+                var teacherTime = teacherTimeMap.get(teacherId);
+                var timeList = times.time.split(",");
+                boolean conflict = false;
+                for(String time : timeList){
+                    if(teacherTime[times.week.getValue()][Integer.parseInt(time)]){
+                        conflict = true;
+                        break;
+                    }
+                }
+                if(!conflict){
+                    String finalTime = "";
+                    for(String time : timeList){
+                        teacherTime[times.week.getValue()][Integer.parseInt(time)] = true;
+                        record[times.week.getValue()][Integer.parseInt(time)] += 1;
+                        finalTime += times.week.getName() + " " + time + "; ";
+                    }
+                    finalTime = finalTime.substring(0, finalTime.length() - 2);
+                    sections.add(new Section(course.getId(), -1, -1, semester, secYear, finalTime, course.getHoursPerWeek()));
+                    successArrange = true;
+                }
+            } while (!heap.isEmpty() && !successArrange);
+            if(!successArrange){
+                throw new RuntimeException("无法安排课程");
+            }
+        }
+
+        //安排教室
+        Map<Integer, boolean[][]> classroomTimeMap = new HashMap<>();
+        List<Classroom> classrooms = queryClassrooms(new Classroom());
+        for(Section section : sections){
+            String sectionCategory = getCourseCategory(section.getCourseId());
+            for(Classroom classroom : classrooms){
+               
+                if(!classroom.getCategory().equals(sectionCategory)){
+                    continue;
+                }
+                if(!classroomTimeMap.containsKey(classroom.getId())){
+                    classroomTimeMap.put(classroom.getId(), new boolean[8][20]);
+                    boolean[][] classroomTime = classroomTimeMap.get(classroom.getId());
+                    for(int i = 0; i < 8; i++){
+                        for(int j = 0; j < 20; j++){
+                            classroomTime[i][j] = false;
+                        }
+                    }
+                }
+                var dayStringList = section.getSecTime().split("; ");
+                var classroomTime = classroomTimeMap.get(classroom.getId());
+                boolean conflict = false;
+                for(String dayString : dayStringList){
+                    //dayString: "Monday 1,2"
+                    //day: 1
+                    //timeList: "1,2"
+                    var day = Integer.parseInt(dayString.split(" ")[0]);
+                    var timeList = dayString.split(" ")[1].split(",");
+                    for(String time : timeList){
+                        if(classroomTime[day][Integer.parseInt(time)]){
+                            conflict = true;
+                            break;
+                        }
+                    }
+                    if(conflict){
+                        break;
+                    }
+                }
+                if(!conflict){
+                    section.setClassroomId(classroom.getId());
+                    for(String dayString : dayStringList){
+                        var day = Integer.parseInt(dayString.split(" ")[0]);
+                        var timeList = dayString.split(" ")[1].split(",");
+                        for(String time : timeList){
+                            classroomTime[day][Integer.parseInt(time)] = true;
+                        }
+                    }
+                    break;
+                }
+            } 
+        }
+
+        logger.info("安排教室完成");
+        
+        
+        //插入数据库
+        for(Section section : sections){
+            addSchedule(section);
+        }
+    }
+
+    private String getCourseCategory(int courseId){
+        String sql = "SELECT category FROM course WHERE course_id = ?";
+        return jdbcTemplate.queryForObject(sql, String.class, courseId);
     }
 
     @Override

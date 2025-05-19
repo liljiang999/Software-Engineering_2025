@@ -7,6 +7,19 @@ public class Course {
     private int teacherId;
     private float credit;
     private String category;
+    private int hoursPerWeek;
+
+    public Course(){}
+
+    public Course(Course course, int hoursPerWeek) {
+        this.courseId = course.courseId;
+        this.courseName = course.courseName;
+        this.courseDescription = course.courseDescription;
+        this.teacherId = course.teacherId;
+        this.credit = course.credit;
+        this.category = course.category;
+        this.hoursPerWeek = hoursPerWeek;
+    }
 
     public int getId() {
         return courseId;
@@ -56,8 +69,16 @@ public class Course {
         this.category = category;
     }
 
+    public int getHoursPerWeek() {
+        return hoursPerWeek;
+    }
+
+    public void setHoursPerWeek(int hoursPerWeek) {
+        this.hoursPerWeek = hoursPerWeek;
+    }
+
     @Override
     public String toString() {
-        return String.format("Course[id=%d, name='%s', description='%s', teacherId=%d, credit=%f, category='%s']", getId(), getName(), getDescription(), getTeacherId(), getCredit(), getCategory());
+        return String.format("Course[id=%d, name='%s', description='%s', teacherId=%d, credit=%f, category='%s', hoursPerWeek=%d]", getId(), getName(), getDescription(), getTeacherId(), getCredit(), getCategory(), getHoursPerWeek());
     }
 }

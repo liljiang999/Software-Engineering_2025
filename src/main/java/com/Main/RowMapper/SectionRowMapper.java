@@ -17,6 +17,7 @@ public class SectionRowMapper implements RowMapper<Section> {
         section.setSemester(rs.getString("semester"));
         section.setSecYear(rs.getInt("sec_year"));
         section.setSecTime(rs.getString("sec_time"));
+        section.setAvailableCapacity(rs.getInt("available_capacity"));
         return section;
     }
     
