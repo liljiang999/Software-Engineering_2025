@@ -10,7 +10,7 @@ public interface AutoManualScheduler {
     public void addSchedule(Section section);
     public void deleteSchedule(int sectionId);
     public void updateSchedule(int sectionId, Section updateInfo);
-    public void checkSchedule();
+    public boolean checkSchedule(String semester, int secYear);
     public List<Section> showSchedule(Section sectionFilter);
     public List<Section> showSchedule(int teacherId);
 }

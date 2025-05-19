@@ -133,10 +133,10 @@ public class LessonController {
     }
 
     @GetMapping("/schedules/check")
-    public ResponseEntity<?> checkSchedule() {
+    public ResponseEntity<?> checkSchedule(@RequestBody String semester, @RequestBody int secYear) {
         try {
-            lessonScheduler.checkSchedule();
-            return ResponseEntity.ok(true);
+            boolean result = lessonScheduler.checkSchedule(semester, secYear);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             logger.error("检查课表失败", e);
             Map<String, String> response = new HashMap<>();

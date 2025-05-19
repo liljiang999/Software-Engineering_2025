@@ -348,9 +348,56 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
     }
 
     @Override
-    public void checkSchedule() {
-        // TODO: 实现课程安排检查逻辑
-        // 检查时间冲突、教室容量等
+    public boolean checkSchedule(String semester, int secYear) {
+        //检查教师和教室是否有同一时间上两节课的冲突
+        var sectionFilter = new Section();
+        sectionFilter.setSemester(semester);
+        sectionFilter.setSecYear(secYear);
+        var sectionList = showSchedule(sectionFilter);
+
+        Map<Integer, boolean[][]> teacherTimeMap = new HashMap<>();
+        Map<Integer, boolean[][]> classroomTimeMap = new HashMap<>();
+        for(Section section : sectionList){
+            var teacherId = section.getCourseId();
+            var classroomId = section.getClassroomId();
+            if(!teacherTimeMap.containsKey(teacherId)){
+                teacherTimeMap.put(teacherId, new boolean[8][20]);
+                boolean[][] teacherTime = teacherTimeMap.get(teacherId);
+                for(int i = 0; i < 8; i++){
+                    for(int j = 0; j < 20; j++){
+                        teacherTime[i][j] = false;
+                    }
+                }
+            }
+            if(!classroomTimeMap.containsKey(classroomId)){
+                classroomTimeMap.put(classroomId, new boolean[8][20]);
+                boolean[][] classroomTime = classroomTimeMap.get(classroomId);
+                for(int i = 0; i < 8; i++){
+                    for(int j = 0; j < 20; j++){
+                        classroomTime[i][j] = false;
+                    }
+                }
+            }
+            var secTime = section.getSecTime();
+            var dayStringList = secTime.split("; ");
+            for(String dayString : dayStringList){
+                var day = Integer.parseInt(dayString.split(" ")[0]);
+                var timeList = dayString.split(" ")[1].split(",");
+                for(String time : timeList){
+                    if(teacherTimeMap.get(teacherId)[day][Integer.parseInt(time)]){
+                        logger.error("教师{}在星期{},第{}节课有冲突", teacherId, day, time);
+                        return false;
+                    }
+                    if(classroomTimeMap.get(classroomId)[day][Integer.parseInt(time)]){
+                        logger.error("教室{}在星期{},第{}节课有冲突", classroomId, day, time);
+                        return false;
+                    }
+                    teacherTimeMap.get(teacherId)[day][Integer.parseInt(time)] = true;
+                    classroomTimeMap.get(classroomId)[day][Integer.parseInt(time)] = true;
+                }
+            }
+        }
+        return true;
     }
 
     @Override
