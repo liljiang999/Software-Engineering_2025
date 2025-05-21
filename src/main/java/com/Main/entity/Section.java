@@ -8,6 +8,8 @@ public class Section {
     private String semester; // 春夏，秋冬
     private int secYear;
     private String secTime; //开课时间，格式暂定为"Monday 1,2; Wednesday 6,7,8"
+
+    //newly added
     private int availableCapacity; // 剩余容量
 
     public Section(){}

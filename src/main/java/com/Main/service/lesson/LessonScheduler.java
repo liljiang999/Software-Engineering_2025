@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Random;
 import java.util.HashMap;
 import com.Main.entity.lesson.LessonScheduleFilter;
 import org.slf4j.Logger;
@@ -274,7 +273,7 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                     //dayString: "Monday 1,2"
                     //day: 1
                     //timeList: "1,2"
-                    var day = Integer.parseInt(dayString.split(" ")[0]);
+                    var day = Arrangement.Week.fromString(dayString.split(" ")[0]).getValue();
                     var timeList = dayString.split(" ")[1].split(",");
                     for(String time : timeList){
                         if(classroomTime[day][Integer.parseInt(time)]){
@@ -289,7 +288,7 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                 if(!conflict){
                     section.setClassroomId(classroom.getId());
                     for(String dayString : dayStringList){
-                        var day = Integer.parseInt(dayString.split(" ")[0]);
+                        var day = Arrangement.Week.fromString(dayString.split(" ")[0]).getValue();
                         var timeList = dayString.split(" ")[1].split(",");
                         for(String time : timeList){
                             classroomTime[day][Integer.parseInt(time)] = true;
@@ -316,14 +315,15 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
 
     @Override
     public void addSchedule(Section section) {
-        String sql = "INSERT INTO section (course_id, classroom_id, capacity, semester, sec_year, sec_time) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO section (course_id, classroom_id, capacity, semester, sec_year, sec_time, available_capacity) VALUES (?, ?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql, 
             section.getCourseId(),
             section.getClassroomId(),
             section.getCapacity(),
             section.getSemester(),
             section.getSecYear(),
-            section.getSecTime()
+            section.getSecTime(),
+            section.getAvailableCapacity()
         );
     }
 
@@ -436,8 +436,8 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
 
     @Override
     public void addClassroom(Classroom classroom) {
-        String sql = "INSERT INTO classroom (location, capacity) VALUES (?, ?)";
-        jdbcTemplate.update(sql, classroom.getLocation(), classroom.getCapacity());
+        String sql = "INSERT INTO classroom (location, capacity, category) VALUES (?, ?, ?)";
+        jdbcTemplate.update(sql, classroom.getLocation(), classroom.getCapacity(), classroom.getCategory());
     }
 
     @Override
@@ -448,22 +448,31 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
 
     @Override
     public void updateClassroom(int classroomId, Classroom updateInfo) {
-        String sql = "UPDATE classroom SET location = ?, capacity = ? WHERE classroom_id = ?";
-        jdbcTemplate.update(sql, updateInfo.getLocation(), updateInfo.getCapacity(), classroomId);
+        String sql = "UPDATE classroom SET location = ?, capacity = ?, category = ? WHERE classroom_id = ?";
+        jdbcTemplate.update(sql, updateInfo.getLocation(), updateInfo.getCapacity(), updateInfo.getCategory(), classroomId);
     }
 
     @Override
     public List<Classroom> queryClassrooms(Classroom classroomFilter) {
         StringBuilder sql = new StringBuilder("SELECT * FROM classroom WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        
         if (classroomFilter.getId() != -1) {
             sql.append(" AND classroom_id = ?");
+            params.add(classroomFilter.getId());
         }
         if (classroomFilter.getLocation() != null) {
             sql.append(" AND location LIKE ?");
+            params.add("%" + classroomFilter.getLocation() + "%");
         }
         if (classroomFilter.getCapacity() > 0) {
             sql.append(" AND capacity >= ?");
+            params.add(classroomFilter.getCapacity());
         }
-        return jdbcTemplate.query(sql.toString(), new ClassroomRowMapper());
+        if (classroomFilter.getCategory() != null) {
+            sql.append(" AND category = ?");
+            params.add(classroomFilter.getCategory());
+        }
+        return jdbcTemplate.query(sql.toString(), params.toArray(), new ClassroomRowMapper());
     }
 }

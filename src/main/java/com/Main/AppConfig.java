@@ -24,8 +24,6 @@ import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.multipart.MultipartResolver;
 
-
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -43,6 +41,7 @@ import jakarta.servlet.ServletContext;
 public class AppConfig  implements WebMvcConfigurer {
 
     public static void main(String[] args) throws Exception {
+        
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(Integer.getInteger("port", 8080));
         tomcat.getConnector();

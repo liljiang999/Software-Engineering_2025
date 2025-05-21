@@ -7,6 +7,8 @@ public class Course {
     private int teacherId;
     private float credit;
     private String category;
+    
+    //newly added
     private int hoursPerWeek;
 
     public Course(){}

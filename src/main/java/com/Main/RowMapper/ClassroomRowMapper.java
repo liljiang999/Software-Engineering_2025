@@ -12,6 +12,7 @@ public class ClassroomRowMapper implements RowMapper<Classroom> {
         Classroom classroom = new Classroom();
         classroom.setId(rs.getInt("classroom_id"));
         classroom.setLocation(rs.getString("location"));
+        classroom.setCategory(rs.getString("category"));
         classroom.setCapacity(rs.getInt("capacity"));
         return classroom;
     }

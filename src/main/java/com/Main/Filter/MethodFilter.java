@@ -1,11 +1,9 @@
 package com.Main.Filter;
 
-import com.Main.service.UserService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -15,8 +13,6 @@ import java.io.IOException;
 public class MethodFilter implements Filter {
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
-    @Autowired
-    UserService userService;
 
     public void init(FilterConfig filterConfig) throws ServletException {
         System.out.println("init MethodFilter");

@@ -4,6 +4,8 @@ public class Classroom {
     private int classroomId = -1;
     private String location;
     private int capacity = 0;
+
+    //newly added
     private String category;
 
     public int getId() {
