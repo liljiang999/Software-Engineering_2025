@@ -223,7 +223,7 @@ const generateSchedule = async () => {
       courses: selectedCourses.value.map(course => course.course_id) // 仅发送课程ID列表
     }
 
-    const response = await axios.post('/schedules/generate', scheduleConfig)
+    const response = await axios.post('/api/schedules/generate', scheduleConfig)
 
     if (response.status === 200) {
       progressPercent.value = 100
@@ -267,7 +267,7 @@ const resetConfig = () => {
 
 onMounted(async () => {
   try {
-    const response = await axios.get('/courses'); //导入课程数据
+    const response = await axios.get('/api/courses'); //导入课程数据
     courses.value = response.data;
   } catch (error) {
     ElMessage.error('获取课程数据失败');

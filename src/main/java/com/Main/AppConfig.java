@@ -38,7 +38,7 @@ import jakarta.servlet.ServletContext;
 @EnableTransactionManagement
 @PropertySource("classpath:/jdbc.properties")
 @PropertySource("classpath:/app.properties")
-public class AppConfig  implements WebMvcConfigurer {
+public class AppConfig implements WebMvcConfigurer {
 
     public static void main(String[] args) throws Exception {
         
@@ -133,8 +133,8 @@ public class AppConfig  implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // 允许所有路径
-                .allowedOrigins("http://localhost:5174") // 允许的前端地址
-                .allowedMethods("GET", "POST", "PUT", "DELETE") // 允许的请求方式
+                .allowedOrigins("http://localhost:5431") // 允许的前端地址
+                .allowedMethods("*") // 允许的请求方式
                 .allowedHeaders("*") // 允许的请求头
                 .allowCredentials(true);
 

@@ -4,19 +4,26 @@
       <template #header>
         <div class="card-header">
           <h2>修改教室信息</h2>
-          <p>请输入筛选条件查找要修改的教室（不能全为空）</p>
+          <p>请输入筛选条件查找要修改的教室</p>
         </div>
       </template>
 
       <el-form :model="filterForm" label-width="120px" class="input-form">
         <el-form-item label="教室 ID">
-          <el-input v-model="filterForm.classroom_id" placeholder="请输入教室 ID" />
+          <el-input v-model="filterForm.id" placeholder="请输入教室 ID" />
         </el-form-item>
         <el-form-item label="位置">
-          <el-input v-model="filterForm.classroom_location" placeholder="请输入教室位置" />
+          <el-input v-model="filterForm.location" placeholder="请输入教室位置" />
         </el-form-item>
         <el-form-item label="容量">
-          <el-input v-model.number="filterForm.classroom_capacity" placeholder="请输入教室容量" type="number" />
+          <el-input v-model.number="filterForm.capacity" placeholder="请输入教室容量" type="number" />
+        </el-form-item>
+        <el-form-item label="类别">
+          <el-select v-model="filterForm.category" placeholder="请选择教室类别" clearable>
+            <el-option label="普通" value="普通" />
+            <el-option label="实验" value="实验" />
+            <el-option label="体育" value="体育" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleFilter" :loading="filterLoading">
@@ -45,9 +52,10 @@
       </template>
 
       <el-table :data="classroomList" style="font-size: 15px;" empty-text="暂无教室数据">
-        <el-table-column prop="classroom_id" label="教室 ID" />
-        <el-table-column prop="classroom_location" label="位置" />
-        <el-table-column prop="classroom_capacity" label="容量" />
+        <el-table-column prop="id" label="教室 ID" />
+        <el-table-column prop="location" label="位置" />
+        <el-table-column prop="capacity" label="容量" />
+        <el-table-column prop="category" label="类别" />
         <el-table-column label="操作" width="120">
           <template #default="scope">
             <el-button type="primary" size="small" @click="openEditDialog(scope.row)">
@@ -60,19 +68,19 @@
 
     <el-dialog
       v-model="editDialogVisible"
-      :title="`修改教室 - ${editFormData.classroom_id}`"
+      :title="`修改教室 - ${editFormData.id}`"
       width="600px"
     >
       <el-form :model="editFormData" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="教室 ID">
-              <el-input v-model="editFormData.classroom_id" :disabled="true" />
+              <el-input v-model="editFormData.id" :disabled="true" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="位置">
-              <el-input v-model="editFormData.classroom_location" />
+              <el-input v-model="editFormData.location" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -80,7 +88,16 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="容量">
-              <el-input-number v-model="editFormData.classroom_capacity" :min="1" />
+              <el-input-number v-model="editFormData.capacity" :min="1" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="类别">
+              <el-select v-model="editFormData.category" placeholder="请选择教室类别">
+                <el-option label="普通" value="普通" />
+                <el-option label="实验" value="实验" />
+                <el-option label="体育" value="体育" />
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -100,9 +117,10 @@ import { ElMessage } from 'element-plus';
 import axios from 'axios';
 
 const filterForm = reactive({
-  classroom_id: '',
-  classroom_location: '',
-  classroom_capacity: '',
+  id: '',
+  location: '',
+  capacity: '',
+  category: '',
 });
 
 const filterLoading = ref(false);
@@ -112,9 +130,10 @@ const classroomList = ref([]);
 // 编辑弹窗相关
 const editDialogVisible = ref(false);
 const editFormData = reactive({
-  classroom_id: '',
-  classroom_location: '',
-  classroom_capacity: null,
+  id: '',
+  location: '',
+  capacity: null,
+  category: '',
 });
 const editLoading = ref(false);
 
@@ -132,13 +151,8 @@ const handleFilter = async () => {
       }
     }
 
-    if (Object.keys(queryParams).length === 0) {
-      ElMessage.warning('请输入至少一个筛选条件');
-      filterLoading.value = false;
-      return;
-    }
 
-    const response = await axios.get('/classrooms/query', { // 假设存在查询接口
+    const response = await axios.get('/api/classrooms/query', { // 假设存在查询接口
       params: queryParams,
     });
 
@@ -178,23 +192,24 @@ const openEditDialog = (row) => {
 const saveEdit = async () => {
   editLoading.value = true;
   try {
-    const response = await axios.put(`/classrooms/${editFormData.classroom_id}`, {
-      position: editFormData.classroom_location,
-      capacity: editFormData.classroom_capacity,
+    const response = await axios.put(`/api/classrooms/${editFormData.id}`, {
+      location: editFormData.location,
+      capacity: editFormData.capacity,
+      category: editFormData.category,
     });
 
     if (response.status === 200) { // 假设成功返回 200
-      ElMessage.success(`教室 ID ${editFormData.classroom_id} 信息修改成功`);
+      ElMessage.success(`教室 ID ${editFormData.id} 信息修改成功`);
       editDialogVisible.value = false;
       // 更新前端列表
       const index = classroomList.value.findIndex(
-        item => item.classroom_id === editFormData.classroom_id
+        item => item.id === editFormData.id
       );
       if (index !== -1) {
         classroomList.value[index] = { ...editFormData };
       }
     } else {
-      ElMessage.error(`修改教室 ID ${editFormData.classroom_id} 信息失败`);
+      ElMessage.error(`修改教室 ID ${editFormData.id} 信息失败`);
     }
   } catch (error) {
     ElMessage.error('网络错误或服务器不可用');

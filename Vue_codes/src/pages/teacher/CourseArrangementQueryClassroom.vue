@@ -90,7 +90,7 @@ const classrooms = ref([]);
 
 const queryClassrooms = async (query, callback) => {
   try {
-    const response = await axios.get('/classrooms/query', { // 查询教室
+    const response = await axios.get('/api/classrooms/query', { // 查询教室
       params: { classroom_id: query }
     });
     if (response.data) {
@@ -180,7 +180,7 @@ const handleQuery = async () => {
   loading.value = true;
   scheduleData.value = [];
   try {
-    const response = await axios.get('/schedules', { // 获取课程表
+    const response = await axios.get('/api/schedules', { // 获取课程表
       params: {
         classroom_id: filterForm.classroom,
         week: filterForm.week
@@ -241,7 +241,7 @@ const getTimeSlot = (secTime) => {
 
 onMounted(async () => {
   try {
-    const response = await axios.get('/classrooms/query'); // 获取所有教室列表
+    const response = await axios.get('/api/classrooms/query'); // 获取所有教室列表
     if (response.data) {
       classrooms.value = response.data.map(item => item.classroom_id);
     }

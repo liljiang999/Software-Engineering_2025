@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <h2>浏览教室信息（教师端）</h2>
-          <p>请输入筛选教室信息（不能全为空）</p>
+          <p>请输入筛选教室信息</p>
         </div>
       </template>
 
@@ -91,7 +91,7 @@ const handleQuery = async () => {
       return;
     }
 
-    const response = await axios.get('/classrooms/query', {
+    const response = await axios.get('/api/classrooms/query', {
       params: queryParams
     });
 

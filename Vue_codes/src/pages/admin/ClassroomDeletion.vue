@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <h2>删除教室</h2>
-          <p>请输入筛选条件查找要删除的教室（不能全为空）</p>
+          <p>请输入筛选条件查找要删除的教室</p>
         </div>
       </template>
 
@@ -17,6 +17,13 @@
         </el-form-item>
         <el-form-item label="容量">
           <el-input v-model.number="filterForm.classroom_capacity" placeholder="请输入教室容量" type="number" />
+        </el-form-item>
+        <el-form-item label="类别">
+          <el-select v-model="filterForm.classroom_category" placeholder="请选择教室类别" clearable>
+            <el-option label="普通" value="普通" />
+            <el-option label="实验" value="实验" />
+            <el-option label="体育" value="体育" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleFilter" :loading="filterLoading">
@@ -45,9 +52,10 @@
       </template>
 
       <el-table :data="classroomList" style="font-size: 15px;" empty-text="暂无教室数据">
-        <el-table-column prop="classroom_id" label="教室 ID" />
-        <el-table-column prop="classroom_location" label="位置" />
-        <el-table-column prop="classroom_capacity" label="容量" />
+        <el-table-column prop="id" label="教室 ID" />
+        <el-table-column prop="location" label="位置" />
+        <el-table-column prop="capacity" label="容量" />
+        <el-table-column prop="category" label="类别" />
         <el-table-column label="操作">
           <template #default="scope">
             <el-button
@@ -73,6 +81,7 @@ const filterForm = reactive({
   classroom_id: '',
   classroom_location: '',
   classroom_capacity: '',
+  classroom_category: '',
 });
 
 const filterLoading = ref(false);
@@ -99,7 +108,7 @@ const handleFilter = async () => {
       return;
     }
 
-    const response = await axios.get('/classrooms/query', { // 假设存在查询接口
+    const response = await axios.get('/api/classrooms/query', { // 假设存在查询接口
       params: queryParams,
     });
 
@@ -141,7 +150,7 @@ const handleDelete = async (index, classroomId) => {
     .then(async () => {
       deleteLoading.value = classroomId;
       try {
-        await axios.delete(`/classrooms/${classroomId}`);
+        await axios.delete(`/api/classrooms/${classroomId}`);
         ElMessage.success(`教室 ID ${classroomId} 删除成功`);
         classroomList.value.splice(index, 1); // 从列表中移除删除的教室
       } catch (error) {

@@ -9,14 +9,18 @@
       </template>
       
       <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" class="input-form">
-        <el-form-item label="教室 ID" prop="classroom_id">
-          <el-input v-model.number="formData.classroom_id" placeholder="请输入新增教室 ID" />
-        </el-form-item>
-        <el-form-item label="位置" prop="position">
-          <el-input v-model="formData.position" placeholder="请输入新增教室位置" />
+        <el-form-item label="位置" prop="location">
+          <el-input v-model="formData.location" placeholder="请输入新增教室位置" />
         </el-form-item>
         <el-form-item label="容量" prop="capacity">
           <el-input v-model.number="formData.capacity" placeholder="请输入新增教室容量" type="number" />
+        </el-form-item>
+        <el-form-item label="类别" prop="category">
+          <el-select v-model="formData.category" placeholder="请选择教室类别" style="width: 100%">
+            <el-option label="普通" value="普通" />
+            <el-option label="实验" value="实验" />
+            <el-option label="体育" value="体育" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleAddition" :loading="loading">
@@ -38,28 +42,14 @@ import axios from 'axios';
 
 // 表单数据 - 键名与数据库字段及 v-model 绑定保持一致
 const formData = reactive({
-  classroom_id: '',
-  position: '',
-  capacity: ''
+  location: '',
+  capacity: '',
+  category: ''
 });
 
 // 表单验证规则 - 键名与 formData 保持一致
 const rules = {
-  classroom_id: [
-    { required: true, message: '请输入教室ID', trigger: 'blur' },
-    { type: 'number', message: '教室ID必须为数字' },
-    { 
-      validator: (rule, value, callback) => {
-        if (value < 1) {
-          callback(new Error('教室ID必须大于等于1'));
-        } else {
-          callback();
-        }
-      }, 
-      trigger: 'blur' 
-    }
-  ],
-  position: [
+  location: [
     { required: true, message: '请输入教室位置', trigger: 'blur' },
     { min: 1, max: 255, message: '长度在1到255个字符之间', trigger: 'blur' }
   ],
@@ -75,6 +65,20 @@ const rules = {
         }
       },
       trigger: 'blur' 
+    }
+  ],
+  category: [
+    { required: true, message: '请选择教室类别', trigger: 'change' },
+    { 
+      validator: (rule, value, callback) => {
+        const validCategories = ['普通', '实验', '体育'];
+        if (!validCategories.includes(value)) {
+          callback(new Error('请选择有效的教室类别'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
     }
   ]
 };
@@ -95,15 +99,14 @@ const handleAddition = async () => {
     loading.value = true;
     
     // 构造请求数据 - 字段名与数据库完全一致
-    // 注意：由于 v-model.number, formData 中的 classroom_id 和 capacity 已经是 number 类型或空字符串
     const requestData = {
-      classroom_id: formData.classroom_id,
-      position: formData.position.trim(),
-      capacity: formData.capacity
+      location: formData.location.trim(),
+      capacity: formData.capacity,
+      category: formData.category.trim()
     };
     
     // API
-    const response = await axios.post('/classrooms', requestData);
+    const response = await axios.post('/api/classrooms', requestData);
     
     // 成功处理
     ElNotification({
@@ -127,7 +130,7 @@ const handleAddition = async () => {
     } else if (error instanceof Error && error.message.includes('validation failed')) {
       // 这是 validate() 失败时的情况，可以不作处理，因为 Element Plus 会自动显示错误信息
     } else {
-      ElMessage.error('网络错误或服务器不可用');
+      ElMessage.error('教室添加失败');
       console.error('API调用错误:', error);
     }
   } finally {

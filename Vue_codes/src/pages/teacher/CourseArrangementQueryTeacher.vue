@@ -154,7 +154,7 @@ const handleQuery = async () => {
   loading.value = true;
   scheduleData.value = [];
   try {
-    const response = await axios.get(`/schedules/teacher/${currentTeacherId.value}`, {
+    const response = await axios.get(`/api/schedules/teacher/${currentTeacherId.value}`, {
       params: {
         week: filterForm.week
       }

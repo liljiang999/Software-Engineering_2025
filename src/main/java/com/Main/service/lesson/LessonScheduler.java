@@ -238,7 +238,7 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                         finalTime += times.week.getName() + " " + time + "; ";
                     }
                     finalTime = finalTime.substring(0, finalTime.length() - 2);
-                    sections.add(new Section(course.getId(), -1, -1, semester, secYear, finalTime, course.getHoursPerWeek()));
+                    sections.add(new Section(course.getId(), -1, -1, semester, secYear, finalTime, -1));
                     successArrange = true;
                 }
             } while (!heap.isEmpty() && !successArrange);
@@ -287,6 +287,8 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                 }
                 if(!conflict){
                     section.setClassroomId(classroom.getId());
+                    section.setCapacity(classroom.getCapacity());
+                    section.setAvailableCapacity(classroom.getCapacity());
                     for(String dayString : dayStringList){
                         var day = Arrangement.Week.fromString(dayString.split(" ")[0]).getValue();
                         var timeList = dayString.split(" ")[1].split(",");

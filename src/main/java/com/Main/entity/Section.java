@@ -1,12 +1,12 @@
 package com.Main.entity;
 
 public class Section {
-    private int sectionId;
-    private int courseId;
-    private int classroomId;
-    private int capacity;
+    private int sectionId=-1;
+    private int courseId=-1;
+    private int classroomId=-1;
+    private int capacity=-1;
     private String semester; // 春夏，秋冬
-    private int secYear;
+    private int secYear=-1;
     private String secTime; //开课时间，格式暂定为"Monday 1,2; Wednesday 6,7,8"
 
     //newly added

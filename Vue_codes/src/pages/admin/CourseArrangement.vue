@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <h2>调整课程安排</h2>
-          <p>请输入筛选条件查找要调整的课程信息（不能全为空）</p>
+          <p>请输入筛选条件查找要调整的课程信息</p>
         </div>
       </template>
 
@@ -178,18 +178,22 @@
         }
       }
 
-      if (Object.keys(queryParams).length === 0) {
-        ElMessage.warning('请输入至少一个筛选条件')
-        filterLoading.value = false
-        return
-      }
-
-      const response = await axios.get('/sections/query', { // 后端查询课程安排的接口 /sections/query
+      const response = await axios.get('/api/sections/query', { // 后端查询课程安排的接口 /sections/query
         params: queryParams
       })
 
       if (response.data) {
-        courseList.value = response.data // 接口直接返回课程安排数组
+        // 字段映射：将后端返回的字段名转换为前端所需的字段名
+        courseList.value = response.data.map(item => ({
+          section_id: item.id,
+          course_id: item.courseId,
+          classroom_id: item.classroomId,
+          capacity: item.capacity,
+          semester: item.semester,
+          sec_year: item.secYear,
+          sec_time: item.secTime
+          // availableCapacity 不用管
+        }))
         if (courseList.value.length === 0) {
           ElMessage.info('未查询到符合条件的课程安排')
         }
@@ -224,7 +228,7 @@
   const saveEdit = async () => {
     editLoading.value = true
     try {
-      const response = await axios.put(`/sections/${editFormData.section_id}`, { // 后端修改课程安排的接口 /sections/{section_id}
+      const response = await axios.put(`/api/sections/${editFormData.section_id}`, {
         course_id: editFormData.course_id,
         classroom_id: editFormData.classroom_id,
         capacity: editFormData.capacity,
