@@ -18,7 +18,7 @@ import java.util.HashMap;
 import com.Main.entity.lesson.LessonScheduleFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.Main.RowMapper.CourseRowMapper;
 
 @Component
 public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
@@ -313,6 +313,11 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
     private String getCourseCategory(int courseId){
         String sql = "SELECT category FROM course WHERE course_id = ?";
         return jdbcTemplate.queryForObject(sql, String.class, courseId);
+    }
+
+    public List<Course> showCourses(){
+        String sql = "SELECT * FROM course";
+        return jdbcTemplate.query(sql, new CourseRowMapper());
     }
 
     @Override

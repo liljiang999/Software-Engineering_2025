@@ -229,12 +229,12 @@
     editLoading.value = true
     try {
       const response = await axios.put(`/api/sections/${editFormData.section_id}`, {
-        course_id: editFormData.course_id,
-        classroom_id: editFormData.classroom_id,
+        courseId: editFormData.course_id,
+        classroomId: editFormData.classroom_id,
         capacity: editFormData.capacity,
         semester: editFormData.semester,
-        sec_year: editFormData.sec_year,
-        sec_time: editFormData.sec_time
+        secYear: parseInt(editFormData.sec_year),
+        secTime: editFormData.sec_time
       })
 
       if (response.status === 200) {

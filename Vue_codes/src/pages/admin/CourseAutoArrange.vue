@@ -90,11 +90,12 @@
                 border highlight-current-row
               >
                 <el-table-column type="selection" width="55" align="center" />
-                <el-table-column prop="course_id" label="课程ID" width="120" align="center" />
-                <el-table-column prop="course_name" label="课程名称" width="180" />
-                <el-table-column prop="teacher_id" label="授课教师ID" width="120" align="center" />
+                <el-table-column prop="id" label="课程ID" width="120" align="center" />
+                <el-table-column prop="name" label="课程名称" width="180" align="center" />
+                <el-table-column prop="teacherId" label="授课教师ID" width="120" align="center" />
                 <el-table-column prop="credit" label="学分" width="80" align="center" />
                 <el-table-column prop="category" label="类型" width="100" align="center" />
+                <el-table-column prop="hoursPerWeek" label="每周课时" width="100" align="center" />
               </el-table>
             </div>
           </div>
@@ -220,7 +221,7 @@ const generateSchedule = async () => {
       dayStart: config.dayStart,
       dayEnd: config.dayEnd,
       constraints: config.constraints,
-      courses: selectedCourses.value.map(course => course.course_id) // 仅发送课程ID列表
+      courses: selectedCourses.value.map(course => course.id) // 仅发送课程ID列表
     }
 
     const response = await axios.post('/api/schedules/generate', scheduleConfig)
@@ -267,8 +268,31 @@ const resetConfig = () => {
 
 onMounted(async () => {
   try {
-    const response = await axios.get('/api/courses'); //导入课程数据
-    courses.value = response.data;
+        // 测试数据
+      courses.value = [
+      {
+        id: 210,
+        name: "Course 41",
+        teacherId: 213,
+        credit: 3,
+        category: "普通",
+        hoursPerWeek: 5,
+        description: "Description 14"
+      },
+      {
+        id: 211,
+        name: "Course 42",
+        teacherId: 214,
+        credit: 4,
+        category: "必修",
+        hoursPerWeek: 6,
+        description: "Description 15"
+      }
+    ];
+    
+    // 实际API调用
+    // const response = await axios.get('/api/courses');
+    // courses.value = response.data;
   } catch (error) {
     ElMessage.error('获取课程数据失败');
     console.error('获取课程数据失败:', error);

@@ -121,6 +121,7 @@ public class LessonController {
     @PutMapping("/api/sections/{section_id}")
     public ResponseEntity<?> updateSchedule(@PathVariable("section_id") int sectionId, @RequestBody Section updateInfo) {
         try {
+            logger.info("controller update section: " + updateInfo);
             lessonScheduler.updateSchedule(sectionId, updateInfo);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -197,4 +198,18 @@ public class LessonController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    @GetMapping("/api/courses")
+    public ResponseEntity<?> getCourses() {
+        try {
+            List<Course> courses = lessonScheduler.showCourses();
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            logger.error("获取课程失败", e);
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "获取课程失败: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
 }
