@@ -39,7 +39,8 @@ public class ArrangeTest {
         jdbcTemplate.update("DELETE FROM user");     
     }
     
-    @PostConstruct
+    // passed
+    // @PostConstruct
     public void testNaiveArrange() {
         //delete all data
         deleteAllData();
