@@ -448,7 +448,6 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             sql.append(" AND capacity = ?");
             params.add(sectionFilter.getCapacity());
         }
-        
         return jdbcTemplate.query(sql.toString(), params.toArray(), new SectionRowMapper());
     }
 

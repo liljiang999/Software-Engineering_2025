@@ -180,7 +180,11 @@ public class LessonController {
             if (course_id != null) sectionFilter.setCourseId(course_id);
             if (classroom_id != null) sectionFilter.setClassroomId(classroom_id);
             if (capacity != null) sectionFilter.setCapacity(capacity);
-            if (semester != null) sectionFilter.setSemester(semester);
+            if (semester != null) {
+                sectionFilter.setSemester(semester);
+                //decode the semester
+                sectionFilter.setSemester(URLDecoder.decode(semester, "UTF-8"));
+            }
             if (sec_year != null) sectionFilter.setSecYear(sec_year);
             if (sec_time != null) sectionFilter.setSecTime(sec_time);
             List<Section> schedules = lessonScheduler.showSchedule(sectionFilter);
