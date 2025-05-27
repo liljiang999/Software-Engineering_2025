@@ -11,14 +11,15 @@
       <el-form :model="config" label-width="120px">
         <el-row :gutter="20">
           <el-col :span="8">
+            <el-form-item label="学年">
+              <el-input v-model="config.year" placeholder="请输入学年" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
             <el-form-item label="学期">
               <el-select v-model="config.semester" placeholder="请选择学期">
-                <el-option
-                  v-for="item in semesterOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
+                <el-option label="春夏" value="春夏" />
+                <el-option label="秋冬" value="秋冬" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -32,29 +33,6 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="排课时间范围">
-          <el-date-picker
-            v-model="config.dateRange"
-            type="daterange"
-            range-separator="-"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-          />
-        </el-form-item>
-        <el-form-item label="每日排课时段">
-          <el-time-picker
-            v-model="config.dayStart"
-            placeholder="开始时间"
-            format="HH:mm"
-          />
-          <span class="time-separator">-</span>
-          <el-time-picker
-            v-model="config.dayEnd"
-            placeholder="结束时间"
-            format="HH:mm"
-          />
-        </el-form-item>
         <el-form-item label="特殊约束">
           <el-checkbox-group v-model="config.constraints">
             <el-checkbox label="avoidConsecutive">避免连堂</el-checkbox>
@@ -97,6 +75,7 @@
                 <el-table-column prop="credit" label="学分" width="80" align="center" />
                 <el-table-column prop="category" label="类型" width="100" align="center" />
                 <el-table-column prop="hoursPerWeek" label="每周课时" width="100" align="center" />
+                <el-table-column prop="description" label="课程描述" min-width="200" align="center" show-overflow-tooltip />
               </el-table>
             </div>
           </div>
@@ -146,11 +125,9 @@ import axios from 'axios'
 
 // 配置数据
 const config = reactive({
-  semester: '2025-1',
+  year: '2025',
+  semester: '春夏',
   priority: ['teacher', 'equipment'],
-  dateRange: [],
-  dayStart: new Date(2024, 1, 1, 8, 0), // 使用 Date 对象
-  dayEnd: new Date(2024, 1, 1, 18, 0), // 使用 Date 对象
   constraints: ['avoidConsecutive', 'teacherGap']
 })
 
@@ -160,12 +137,6 @@ const courseSearch = ref('')
 const selectAll = ref(false)
 const selectedCourses = ref([])
 const courseTable = ref(null)
-
-// 学期
-const semesterOptions = ref([
-  { value: '2025-1', label: '2025-2026学年春夏学期' },
-  { value: '2025-2', label: '2025-2026学年秋冬学期' }
-])
 
 // 排课进度
 const generating = ref(false)
@@ -190,9 +161,13 @@ const filteredCourses = computed(() => {
 const toggleAllSelection = () => {
   selectAll.value = !selectAll.value;
   if (courseTable.value) {
-    filteredCourses.value.forEach(row => {
-      courseTable.value.toggleRowSelection(row, selectAll.value);
-    });
+    if (selectAll.value) {
+      filteredCourses.value.forEach(row => {
+        courseTable.value.toggleRowSelection(row, true);
+      });
+    } else {
+      courseTable.value.clearSelection();
+    }
   }
 };
 
@@ -219,19 +194,10 @@ const generateSchedule = async () => {
   progressMessage.value = '正在准备排课数据...';
 
   try {
-    const formatTime = (date) => {
-        if (!date) return '';
-        const h = date.getHours().toString().padStart(2, '0');
-        const m = date.getMinutes().toString().padStart(2, '0');
-        return `${h}:${m}`;
-    }
-
     const scheduleConfig = {
+      secYear: config.year,
       semester: config.semester,
       priority: config.priority,
-      dateRange: config.dateRange,
-      dayStart: formatTime(config.dayStart),
-      dayEnd: formatTime(config.dayEnd),
       constraints: config.constraints,
       courses: selectedCourses.value.map(course => course.id) 
     };
@@ -267,11 +233,9 @@ const generateSchedule = async () => {
 
 const resetConfig = () => {
   Object.assign(config, {
-    semester: '2025-1',
+    year: '2025',
+    semester: '春夏',
     priority: ['teacher', 'equipment'],
-    dateRange: [],
-    dayStart: new Date(2024, 1, 1, 8, 0),
-    dayEnd: new Date(2024, 1, 1, 18, 0),
     constraints: ['avoidConsecutive', 'teacherGap']
   })
   if (courseTable.value) {

@@ -163,7 +163,15 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
 
 
     @Override
-    public void generateSchedule(List<Course> undistributedCourses, LessonScheduleFilter filter) {
+    public void generateSchedule(LessonScheduleFilter filter) {
+        List<Integer> courseIds = filter.getCourses();
+        List<Course> undistributedCourses = new ArrayList<>();
+        for(Integer courseId : courseIds){
+            //从course表中查询courseId对应的课程
+            String sql = "SELECT * FROM course WHERE course_id = ?";
+            Course course = jdbcTemplate.queryForObject(sql, new CourseRowMapper(), courseId);
+            undistributedCourses.add(course);
+        }
         var semester = filter.getSemester();
         var secYear = filter.getSecYear();
         // 排课之前，删除掉当前学期、学年的课程安排

@@ -10,16 +10,16 @@
 
       <el-form :model="filterForm" label-width="120px" class="input-form">
         <el-form-item label="教室 ID">
-          <el-input v-model="filterForm.classroom_id" placeholder="请输入教室 ID" />
+          <el-input v-model="filterForm.id" placeholder="请输入教室 ID" />
         </el-form-item>
         <el-form-item label="位置">
-          <el-input v-model="filterForm.classroom_location" placeholder="请输入教室位置" />
+          <el-input v-model="filterForm.location" placeholder="请输入教室位置" />
         </el-form-item>
         <el-form-item label="容量">
-          <el-input v-model.number="filterForm.classroom_capacity" placeholder="请输入教室容量" type="number" />
+          <el-input v-model.number="filterForm.capacity" placeholder="请输入教室容量" type="number" />
         </el-form-item>
         <el-form-item label="类别">
-          <el-select v-model="filterForm.classroom_category" placeholder="请选择教室类别" clearable>
+          <el-select v-model="filterForm.category" placeholder="请选择教室类别" clearable>
             <el-option label="普通" value="普通" />
             <el-option label="实验" value="实验" />
             <el-option label="体育" value="体育" />

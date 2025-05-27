@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.net.URLDecoder;
 
 @RestController
 public class LessonController {
@@ -71,16 +72,21 @@ public class LessonController {
 
     @GetMapping("/api/classrooms/query")
     public ResponseEntity<?> queryClassrooms(
-            @RequestParam(required = false) Integer classroom_id,
-            @RequestParam(required = false) String classroom_location,
-            @RequestParam(required = false) Integer classroom_capacity,
-            @RequestParam(required = false) String classroom_category) {
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Integer capacity,
+            @RequestParam(required = false) String category) {
         try {
+            //category 需要识别:%E5%AE%9E%E9%AA%8C  %E6%99%AE%E9%80%9A %E4%BD%93%E8%82%B2
             Classroom filter = new Classroom();
-            if (classroom_id != null) filter.setId(classroom_id);
-            if (classroom_location != null) filter.setLocation(classroom_location);
-            if (classroom_capacity != null) filter.setCapacity(classroom_capacity);
-            if (classroom_category != null) filter.setCategory(classroom_category);
+            if (id != null) filter.setId(id);
+            if (location != null) filter.setLocation(location);
+            if (capacity != null) filter.setCapacity(capacity);
+            if (category != null){
+                filter.setCategory(category);
+                //decode the category
+                filter.setCategory(URLDecoder.decode(category, "UTF-8"));
+            }
             
             List<Classroom> classrooms = lessonScheduler.queryClassrooms(filter);
             return ResponseEntity.ok(classrooms);
@@ -92,10 +98,11 @@ public class LessonController {
         }
     }
     
-    @PostMapping("/api/sections/generate")
-    public ResponseEntity<?> generateSchedule(@RequestBody List<Course> courses, @RequestBody LessonScheduleFilter filter) {
+    @PostMapping("/api/schedules/generate")
+    public ResponseEntity<?> generateSchedule(@RequestBody LessonScheduleFilter filter) {
         try {
-            lessonScheduler.generateSchedule(courses, filter);
+            // logger.warn("controller generate schedule: " + filter);
+            lessonScheduler.generateSchedule(filter);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             logger.error("生成课表失败", e);

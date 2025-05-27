@@ -21,7 +21,10 @@
           <el-input v-model.number="filterForm.capacity" placeholder="请输入容量" type="number" />
         </el-form-item>
         <el-form-item label="学期">
-          <el-input v-model="filterForm.semester" placeholder="请输入学期" />
+          <el-select v-model="filterForm.semester" placeholder="请选择学期" style="width: 100%">
+            <el-option label="春夏" value="春夏" />
+            <el-option label="秋冬" value="秋冬" />
+          </el-select>
         </el-form-item>
         <el-form-item label="开课年份">
           <el-input v-model.number="filterForm.sec_year" placeholder="请输入开课年份" type="number" />
@@ -88,11 +91,16 @@
       <el-form :model="formData" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="开课ID">
+            <el-form-item label="开课ID" v-if="dialogMode === 'edit'">
               <el-input v-model="formData.section_id" :disabled="dialogMode === 'edit'" />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="12" v-if="dialogMode === 'edit'">
+            <el-form-item label="课程ID">
+              <el-input v-model="formData.course_id" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24" v-if="dialogMode !== 'edit'">
             <el-form-item label="课程ID">
               <el-input v-model="formData.course_id" />
             </el-form-item>
@@ -120,7 +128,10 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="学期">
-              <el-input v-model="formData.semester" />
+              <el-select v-model="formData.semester" placeholder="请选择学期" style="width: 100%">
+                <el-option label="春夏" value="春夏" />
+                <el-option label="秋冬" value="秋冬" />
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -298,8 +309,8 @@
   const resetFormData = () => {
     Object.assign(formData, {
         section_id: '', course_id: '', classroom_id: '',
-        capacity: 80, semester: 'Spring', sec_year: new Date().getFullYear(), 
-        sec_time: '', available_capacity: 0
+        capacity: 80, semester: '春夏', sec_year: new Date().getFullYear(), 
+        sec_time: '', available_capacity: 50
     })
   }
 
@@ -320,7 +331,6 @@
     formLoading.value = true
     try {
       const payload = {
-        Id: parseInt(formData.section_id),
         courseId: parseInt(formData.course_id),
         classroomId: parseInt(formData.classroom_id),
         capacity: parseInt(formData.capacity),
@@ -332,6 +342,7 @@
       if (dialogMode.value === 'add') {
         await axios.post('/api/sections', payload)
       } else {
+        payload.Id = parseInt(formData.section_id)
         await axios.put(`/api/sections/${formData.section_id}`, payload)
       }
       ElMessage.success(`${dialogMode.value === 'add' ? '添加' : '修改'}成功！`)

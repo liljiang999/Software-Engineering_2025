@@ -12,6 +12,7 @@ import com.Main.entity.Course;
 import com.Main.entity.Section;
 import com.Main.entity.lesson.LessonScheduleFilter; 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,8 +89,9 @@ public class ArrangeTest {
         LessonScheduleFilter filter = new LessonScheduleFilter();
         filter.setSemester("春夏");
         filter.setSecYear(2024);
+        filter.setCourses(courses.stream().map(Course::getId).collect(Collectors.toList()));
         //generate schedule
-        lessonScheduler.generateSchedule(courses, filter);
+        lessonScheduler.generateSchedule(filter);
         //query section
         List<Section> sections = lessonScheduler.showSchedule(teacher.getId());
         //print section
@@ -132,8 +134,9 @@ public class ArrangeTest {
         LessonScheduleFilter filter = new LessonScheduleFilter();
         filter.setSemester("春夏");
         filter.setSecYear(2024);
+        filter.setCourses(courses.stream().map(Course::getId).collect(Collectors.toList()));
         //generate schedule
-        lessonScheduler.generateSchedule(courses, filter);
+        lessonScheduler.generateSchedule(filter);
         //query section
         List<Section> sections = lessonScheduler.showSchedule(teacher.getId());
         //print section
@@ -172,8 +175,9 @@ public class ArrangeTest {
         LessonScheduleFilter filter = new LessonScheduleFilter();
         filter.setSemester("春夏");
         filter.setSecYear(2024);
+        filter.setCourses(courses.stream().map(Course::getId).collect(Collectors.toList()));
         //generate schedule
-        lessonScheduler.generateSchedule(courses, filter);
+        lessonScheduler.generateSchedule(filter);
         //query section
         for (User teacher : teachers) {
             List<Section> sections = lessonScheduler.showSchedule(teacher.getId());

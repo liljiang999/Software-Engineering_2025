@@ -7,18 +7,31 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 public class LessonScheduleFilter {
 
     public enum Priority {
-        TEACHER_PREFERENCE,
-        CLASSROOM_DEVICE
+        teacher,
+        equipment,
+        continuity,
     } 
+
+    public enum Constraint {
+        avoidConsecutive,
+        teacherGap,
+        classroomConflict,
+        classroomGap,
+        avoidSingle,
+        avoidWeekend,
+    }
     
     private String semester;
     private int secYear;
-    private boolean avoidConsecutiveLessons;
-    
+
  
     @JsonDeserialize(converter = StringToPriorityConverter.class)
     private List<Priority> priority;
 
+    @JsonDeserialize(converter = StringToConstraintConverter.class)
+    private List<Constraint> constraints;
+
+    private List<Integer> courses;
 
     public String getSemester() {
         return semester;
@@ -44,13 +57,33 @@ public class LessonScheduleFilter {
         this.priority = priority;
     }
 
-    public boolean isAvoidConsecutiveLessons() {
-        return avoidConsecutiveLessons;
+    public List<Constraint> getConstraints() {
+        return constraints;
     }
 
-    public void setAvoidConsecutiveLessons(boolean avoidConsecutiveLessons) {
-        this.avoidConsecutiveLessons = avoidConsecutiveLessons;
+    public void setConstraints(List<Constraint> constraints) {
+        this.constraints = constraints;
     }
+
+    public List<Integer> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<Integer> courses) {
+        this.courses = courses;
+    }
+
+    @Override
+    public String toString() {
+        return "LessonScheduleFilter{" +
+                "semester='" + semester + '\'' +
+                ", secYear=" + secYear +
+                ", priority=" + priority +
+                ", constraints=" + constraints +
+                ", courses=" + courses +
+                '}';
+    }
+    
 
 }
 
@@ -58,8 +91,16 @@ class StringToPriorityConverter extends StdConverter<List<String>, List<LessonSc
     @Override
     public List<LessonScheduleFilter.Priority> convert(List<String> value) {
         return value.stream()
-            .map(String::toUpperCase)
             .map(LessonScheduleFilter.Priority::valueOf)
+            .toList();
+    }
+}
+
+class StringToConstraintConverter extends StdConverter<List<String>, List<LessonScheduleFilter.Constraint>> {
+    @Override
+    public List<LessonScheduleFilter.Constraint> convert(List<String> value) {
+        return value.stream()
+            .map(LessonScheduleFilter.Constraint::valueOf)
             .toList();
     }
 }
