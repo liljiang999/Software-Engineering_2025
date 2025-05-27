@@ -22,7 +22,6 @@
               </el-select>
             </el-form-item>
           </el-col>
-
           <el-col :span="8">
             <el-form-item label="排课优先级">
               <el-select v-model="config.priority" multiple placeholder="请选择优先级">
@@ -33,7 +32,6 @@
             </el-form-item>
           </el-col>
         </el-row>
-
         <el-form-item label="排课时间范围">
           <el-date-picker
             v-model="config.dateRange"
@@ -44,7 +42,6 @@
             value-format="YYYY-MM-DD"
           />
         </el-form-item>
-
         <el-form-item label="每日排课时段">
           <el-time-picker
             v-model="config.dayStart"
@@ -58,7 +55,6 @@
             format="HH:mm"
           />
         </el-form-item>
-
         <el-form-item label="特殊约束">
           <el-checkbox-group v-model="config.constraints">
             <el-checkbox label="avoidConsecutive">避免连堂</el-checkbox>
@@ -69,10 +65,17 @@
             <el-checkbox label="avoidWeekend">避免周末排课</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
-
+        
         <el-form-item label="待排课程">
           <div class="course-selection-container">
             <div class="selection-actions">
+              <el-input
+                v-model="courseSearch"
+                placeholder="按课程名称或ID搜索"
+                clearable
+                @clear="handleSearchClear"
+                style="width: 240px; margin-right: 20px;"
+              />
               <el-button type="primary" size="small" @click="toggleAllSelection">
                 {{ selectAll ? '取消全选' : '全选' }}
               </el-button>
@@ -81,9 +84,8 @@
 
             <div class="table-container">
               <el-table
-                :data="courses"
+                :data="filteredCourses"
                 style="width: 100%; font-size: 15px;"
-                height="300"
                 empty-text="暂无课程数据"
                 @selection-change="handleSelectionChange"
                 ref="courseTable"
@@ -92,7 +94,6 @@
                 <el-table-column type="selection" width="55" align="center" />
                 <el-table-column prop="id" label="课程ID" width="120" align="center" />
                 <el-table-column prop="name" label="课程名称" width="180" align="center" />
-                <el-table-column prop="teacherId" label="授课教师ID" width="120" align="center" />
                 <el-table-column prop="credit" label="学分" width="80" align="center" />
                 <el-table-column prop="category" label="类型" width="100" align="center" />
                 <el-table-column prop="hoursPerWeek" label="每周课时" width="100" align="center" />
@@ -127,7 +128,7 @@
       <div class="progress-message">{{ progressMessage }}</div>
       <template #footer>
         <el-button
-          v-if="progressStatus === 'success'"
+          v-if="progressStatus === 'success' || progressStatus === 'error'"
           type="primary"
           @click="showProgressDialog = false"
         >
@@ -148,8 +149,8 @@ const config = reactive({
   semester: '2025-1',
   priority: ['teacher', 'equipment'],
   dateRange: [],
-  dayStart: '08:00',
-  dayEnd: '18:00',
+  dayStart: new Date(2024, 1, 1, 8, 0), // 使用 Date 对象
+  dayEnd: new Date(2024, 1, 1, 18, 0), // 使用 Date 对象
   constraints: ['avoidConsecutive', 'teacherGap']
 })
 
@@ -166,133 +167,125 @@ const semesterOptions = ref([
   { value: '2025-2', label: '2025-2026学年秋冬学期' }
 ])
 
-
+// 排课进度
 const generating = ref(false)
 const showProgressDialog = ref(false)
 const progressPercent = ref(0)
 const progressStatus = ref('')
 const progressMessage = ref('')
 
-// 计算属性 - 过滤课程
+// 【修改】补全课程筛选的计算属性
 const filteredCourses = computed(() => {
-  if (!courseSearch.value) return courses.value
-  //补全筛选方法
-})
-
-// 全选/取消全选
-const toggleAllSelection = () => {
-  selectAll.value = !selectAll.value
-  if (courseTable.value) {
-    courses.value.forEach(row => {
-      courseTable.value.toggleRowSelection(row, selectAll.value)
-    })
+  if (!courseSearch.value) {
+    return courses.value;
   }
-}
+  return courses.value.filter(course =>
+    // 按课程名称或ID进行不区分大小写的搜索
+    course.name.toLowerCase().includes(courseSearch.value.toLowerCase()) ||
+    String(course.id).includes(courseSearch.value)
+  );
+});
 
+
+const toggleAllSelection = () => {
+  selectAll.value = !selectAll.value;
+  if (courseTable.value) {
+    filteredCourses.value.forEach(row => {
+      courseTable.value.toggleRowSelection(row, selectAll.value);
+    });
+  }
+};
 
 const handleSelectionChange = (selection) => {
   selectedCourses.value = selection
-  selectAll.value = selection.length === courses.value.length && courses.value.length > 0
-}
-
+  selectAll.value = selection.length === filteredCourses.value.length && filteredCourses.value.length > 0;
+};
 
 const handleSearchClear = () => {
   courseSearch.value = ''
 }
 
-// 生成排课方案
+
 const generateSchedule = async () => {
   if (selectedCourses.value.length === 0) {
-    ElMessage.warning('请至少选择一门课程进行排课')
-    return
+    ElMessage.warning('请至少选择一门课程进行排课');
+    return;
   }
 
-  generating.value = true
-  showProgressDialog.value = true
-  progressPercent.value = 0
-  progressStatus.value = ''
-  progressMessage.value = '正在准备排课数据...'
+  generating.value = true;
+  showProgressDialog.value = true;
+  progressPercent.value = 0;
+  progressStatus.value = '';
+  progressMessage.value = '正在准备排课数据...';
 
   try {
+    const formatTime = (date) => {
+        if (!date) return '';
+        const h = date.getHours().toString().padStart(2, '0');
+        const m = date.getMinutes().toString().padStart(2, '0');
+        return `${h}:${m}`;
+    }
+
     const scheduleConfig = {
       semester: config.semester,
       priority: config.priority,
       dateRange: config.dateRange,
-      dayStart: config.dayStart,
-      dayEnd: config.dayEnd,
+      dayStart: formatTime(config.dayStart),
+      dayEnd: formatTime(config.dayEnd),
       constraints: config.constraints,
-      courses: selectedCourses.value.map(course => course.id) // 仅发送课程ID列表
-    }
+      courses: selectedCourses.value.map(course => course.id) 
+    };
+    
+    progressPercent.value = 30;
+    progressMessage.value = '正在向服务器发送请求...';
+    
+    const response = await axios.post('/api/schedules/generate', scheduleConfig);
 
-    const response = await axios.post('/api/schedules/generate', scheduleConfig)
+    progressPercent.value = 70;
+    progressMessage.value = '服务器正在处理排课...';
 
     if (response.status === 200) {
-      progressPercent.value = 100
-      progressStatus.value = 'success'
-      progressMessage.value = '排课方案生成成功'
-      ElMessage.success('排课方案生成成功')
+      setTimeout(() => {
+          progressPercent.value = 100;
+          progressStatus.value = 'success';
+          progressMessage.value = '排课方案生成成功';
+          ElMessage.success('排课方案生成成功');
+      }, 500);
     } else {
-      progressPercent.value = 100
-      progressStatus.value = 'error'
-      progressMessage.value = '排课方案生成失败'
-      ElMessage.error('排课方案生成失败')
+      throw new Error('API returned non-200 status');
     }
   } catch (error) {
-    progressPercent.value = 100
-    progressStatus.value = 'error'
-    progressMessage.value = '排课发生错误'
-    ElMessage.error('排课发生错误')
-    console.error('生成排课方案失败:', error)
+    progressPercent.value = 100;
+    progressStatus.value = 'exception';
+    progressMessage.value = `排课发生错误: ${error.message || '未知错误'}`;
+    ElMessage.error('排课发生错误');
+    console.error('生成排课方案失败:', error);
   } finally {
-    generating.value = false
+    generating.value = false;
   }
-}
+};
 
-// 重置配置
 const resetConfig = () => {
   Object.assign(config, {
     semester: '2025-1',
     priority: ['teacher', 'equipment'],
     dateRange: [],
-    dayStart: '08:00',
-    dayEnd: '18:00',
+    dayStart: new Date(2024, 1, 1, 8, 0),
+    dayEnd: new Date(2024, 1, 1, 18, 0),
     constraints: ['avoidConsecutive', 'teacherGap']
   })
   if (courseTable.value) {
-    courseTable.value.clearSelection()
+    courseTable.value.clearSelection();
   }
-  selectedCourses.value = []
-  selectAll.value = false
-  courseSearch.value = ''
-}
+  selectedCourses.value = [];
+  selectAll.value = false;
+  courseSearch.value = '';
+};
 
 onMounted(async () => {
   try {
-        // 测试数据
-      courses.value = [
-      {
-        id: 210,
-        name: "Course 41",
-        teacherId: 213,
-        credit: 3,
-        category: "普通",
-        hoursPerWeek: 5,
-        description: "Description 14"
-      },
-      {
-        id: 211,
-        name: "Course 42",
-        teacherId: 214,
-        credit: 4,
-        category: "必修",
-        hoursPerWeek: 6,
-        description: "Description 15"
-      }
-    ];
-    
-    // 实际API调用
-    // const response = await axios.get('/api/courses');
-    // courses.value = response.data;
+    const response = await axios.get('/api/courses');
+    courses.value = response.data;
   } catch (error) {
     ElMessage.error('获取课程数据失败');
     console.error('获取课程数据失败:', error);
@@ -306,55 +299,45 @@ onMounted(async () => {
   margin: 0 auto;
   padding: 20px;
 }
-
 .container {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-
 .form-card {
   width: 95%;
   margin: 0px auto 20px auto;
 }
-
 .card-header {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .card-header h2 {
   margin-bottom: 5px;
 }
-
 .card-header p {
   margin: 0;
   font-size: 14px;
   color: var(--el-text-color-secondary);
 }
-
 .time-separator {
   margin: 0 10px;
   color: var(--el-text-color-secondary);
 }
-
 .course-selection-container {
   width: 100%;
 }
-
 .selection-actions {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
 }
-
 .selected-count {
   margin-left: 15px;
   font-size: 14px;
   color: var(--el-text-color-secondary);
 }
-
 .progress-message {
   margin-top: 10px;
   text-align: center;
