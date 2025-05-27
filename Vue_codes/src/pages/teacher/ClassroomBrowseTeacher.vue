@@ -15,8 +15,15 @@
         <el-form-item label="位置">
           <el-input v-model="formData.classroom_location" placeholder="请输入教室位置" />
         </el-form-item>
-        <el-form-item label="容量">
+        <el-form-item label="容量(大于等于)">
           <el-input v-model.number="formData.classroom_capacity" placeholder="请输入教室容量" type="number" />
+        </el-form-item>
+        <el-form-item label="类别">
+          <el-select v-model="formData.classroom_category" placeholder="请选择教室类别" clearable>
+            <el-option label="普通" value="普通" />
+            <el-option label="实验" value="实验" />
+            <el-option label="体育" value="体育" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery" :loading="loading">
@@ -45,9 +52,10 @@
       </template>
 
       <el-table :data="classroomList" style="font-size: 15px;" empty-text="暂无教室数据">
-        <el-table-column prop="classroom_id" label="教室 ID" />
-        <el-table-column prop="classroom_location" label="位置" />
-        <el-table-column prop="classroom_capacity" label="容量" />
+        <el-table-column prop="id" label="教室 ID" />
+        <el-table-column prop="location" label="位置" />
+        <el-table-column prop="capacity" label="容量" />
+        <el-table-column prop="category" label="类型" />
       </el-table>
     </el-card>
   </div>
@@ -62,7 +70,8 @@ import axios from 'axios';
 const formData = reactive({
   classroom_id: '',
   classroom_location: '',
-  classroom_capacity: ''
+  classroom_capacity: '',
+  classroom_category: ''
 });
 
 const loading = ref(false);
@@ -73,10 +82,10 @@ const hasSearched = ref(false); // 标记是否进行过搜索
 const handleQuery = async () => {
   loading.value = true;
   hasSearched.value = true;
-  classroomList.value = []; // 清空之前的查询结果
+  classroomList.value = []; // 清空查询结果
 
   try {
-    
+    // 构建查询参数，只包含非空字段
     const queryParams = {};
     for (const key in formData) {
       if (formData[key] !== '') {
@@ -84,19 +93,13 @@ const handleQuery = async () => {
       }
     }
 
-    // 如果所有字段都为空，给出提示
-    if (Object.keys(queryParams).length === 0) {
-      ElMessage.warning('请输入至少一个查询条件');
-      loading.value = false;
-      return;
-    }
 
-    const response = await axios.get('/api/classrooms/query', {
+    const response = await axios.get('/api/classrooms/query', {// 发送查询请求
       params: queryParams
     });
 
-    if (response.data.success) {
-      classroomList.value = response.data.data; // 后端返回 { success: true, data: [...] }
+    if (response.data) {
+      classroomList.value = response.data; // 后端直接返回教室列表
       if (classroomList.value.length === 0) {
         ElMessage.info('未查询到符合条件的教室');
       }
@@ -123,7 +126,7 @@ const resetForm = () => {
 </script>
 
 <style scoped>
-.classroom-browse-teacher {
+.classroom-browse-admin {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;

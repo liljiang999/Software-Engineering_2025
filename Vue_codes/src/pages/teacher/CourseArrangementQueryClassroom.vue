@@ -180,10 +180,9 @@ const handleQuery = async () => {
   loading.value = true;
   scheduleData.value = [];
   try {
-    const response = await axios.get('/api/schedules', { // 获取课程表
+    const response = await axios.get('/api/sections/query', { // 获取课程表
       params: {
         classroom_id: filterForm.classroom,
-        week: filterForm.week
       }
     });
     if (response.data) {

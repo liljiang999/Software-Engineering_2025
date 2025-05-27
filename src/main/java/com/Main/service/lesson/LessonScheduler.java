@@ -418,28 +418,38 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
     @Override
     public List<Section> showSchedule(Section sectionFilter) {
         StringBuilder sql = new StringBuilder("SELECT * FROM section WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        
         if (sectionFilter.getId() != -1) {
             sql.append(" AND section_id = ?");
+            params.add(sectionFilter.getId());
         }
         if (sectionFilter.getCourseId() != -1) {
             sql.append(" AND course_id = ?");
+            params.add(sectionFilter.getCourseId());
         }
         if (sectionFilter.getClassroomId() != -1) {
             sql.append(" AND classroom_id = ?");
+            params.add(sectionFilter.getClassroomId());
         }
         if (sectionFilter.getSemester() != null) {
             sql.append(" AND semester = ?");
+            params.add(sectionFilter.getSemester());
         }
         if (sectionFilter.getSecYear() != -1) {
             sql.append(" AND sec_year = ?");
+            params.add(sectionFilter.getSecYear());
         }
         if (sectionFilter.getSecTime() != null) {
             sql.append(" AND sec_time = ?");
+            params.add(sectionFilter.getSecTime());
         }
         if (sectionFilter.getCapacity() != -1) {
             sql.append(" AND capacity = ?");
+            params.add(sectionFilter.getCapacity());
         }
-        return jdbcTemplate.query(sql.toString(), new SectionRowMapper());
+        
+        return jdbcTemplate.query(sql.toString(), params.toArray(), new SectionRowMapper());
     }
 
     @Override
