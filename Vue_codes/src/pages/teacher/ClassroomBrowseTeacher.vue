@@ -10,16 +10,16 @@
 
       <el-form :model="formData" label-width="120px" class="input-form">
         <el-form-item label="教室 ID">
-          <el-input v-model="formData.classroom_id" placeholder="请输入教室 ID" />
+          <el-input v-model="formData.id" placeholder="请输入教室 ID" />
         </el-form-item>
         <el-form-item label="位置">
-          <el-input v-model="formData.classroom_location" placeholder="请输入教室位置" />
+          <el-input v-model="formData.location" placeholder="请输入教室位置" />
         </el-form-item>
         <el-form-item label="容量(大于等于)">
-          <el-input v-model.number="formData.classroom_capacity" placeholder="请输入教室容量" type="number" />
+          <el-input v-model.number="formData.capacity" placeholder="请输入教室容量" type="number" />
         </el-form-item>
         <el-form-item label="类别">
-          <el-select v-model="formData.classroom_category" placeholder="请选择教室类别" clearable>
+          <el-select v-model="formData.category" placeholder="请选择教室类别" clearable>
             <el-option label="普通" value="普通" />
             <el-option label="实验" value="实验" />
             <el-option label="体育" value="体育" />
@@ -68,10 +68,10 @@ import { ElMessage } from 'element-plus';
 import axios from 'axios';
 
 const formData = reactive({
-  classroom_id: '',
-  classroom_location: '',
-  classroom_capacity: '',
-  classroom_category: ''
+  id: '',
+  location: '',
+  capacity: '',
+  category: ''
 });
 
 const loading = ref(false);
