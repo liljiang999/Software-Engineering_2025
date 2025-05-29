@@ -11,17 +11,16 @@
         <el-form :model="filterForm">
           <div class="filter-row">
             <el-form-item label="教师" class="filter-item">
-              <el-input v-model="currentTeacher" disabled />
+              <el-input v-model="currentTeacher" disabled style="width: 200px" />
             </el-form-item>
-            <el-form-item label="周数" class="filter-item">
-              <el-select v-model="filterForm.week" placeholder="请选择周数">
-                <el-option
-                  v-for="week in 16"
-                  :key="week"
-                  :label="`第 ${week} 周`"
-                  :value="week"
-                />
+            <el-form-item label="学期" class="filter-item">
+              <el-select v-model="filterForm.semester" placeholder="请选择学期" style="width: 200px">
+                <el-option label="春夏" value="春夏" />
+                <el-option label="秋冬" value="秋冬" />
               </el-select>
+            </el-form-item>
+            <el-form-item label="学年" class="filter-item">
+              <el-input v-model="filterForm.sec_year" placeholder="请输入学年" style="width: 200px" />
             </el-form-item>
             <el-button type="primary" @click="handleQuery" :loading="loading">
               查询
@@ -56,8 +55,8 @@
                   v-show="isCourseStart(day.value, timeSlot) || !getCourse(day.value, timeSlot)"
                 >
                   <div v-if="isCourseStart(day.value, timeSlot)" class="course-info">
-                    <div class="course-name">{{ getCourse(day.value, timeSlot).name }}</div>
-                    <div class="classroom">教室: {{ getCourse(day.value, timeSlot).classroom_id }}</div>
+                    <div class="course-name">{{ getCourse(day.value, timeSlot).courseName }}</div>
+                    <div class="classroom">教室: {{ getCourse(day.value, timeSlot).classroomName }}</div>
                     <div class="time-range">{{ getCourseTimeRange(getCourse(day.value, timeSlot)) }}</div>
                   </div>
                 </td>
@@ -75,11 +74,12 @@ import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import axios from 'axios';
 
-// 实际应从用户认证信息获取
+// 固定教师信息（张老师）
 const currentTeacher = ref('张老师');
-const currentTeacherId = ref('111'); 
+const currentTeacherId = ref(212); // 注意：这里改为数值类型，与测试数据一致
 const filterForm = reactive({
-  week: 1
+  semester: '春夏', // 默认学期
+  sec_year: new Date().getFullYear().toString(), // 默认当前学年
 });
 
 const loading = ref(false);
@@ -95,19 +95,19 @@ const weekDays = ref([
 ]);
 
 const timeSlots = ref([
-  { time: '08:00-08:45', start: 1, end: 2 },
-  { time: '08:50-09:35', start: 3, end: 4 },
-  { time: '10:00-10:45', start: 5, end: 6 },
-  { time: '10:50-11:35', start: 7, end: 8 },
-  { time: '11:40-12:25', start: 9, end: 10 },
-  { time: '13:25-14:10', start: 11, end: 12 },
-  { time: '14:15-15:00', start: 13, end: 14 },
-  { time: '15:05-15:50', start: 15, end: 16 },
-  { time: '16:15-17:00', start: 17, end: 18 },
-  { time: '17:05-17:50', start: 19, end: 20 },
-  { time: '18:50-19:35', start: 21, end: 22 },
-  { time: '19:40-20:25', start: 23, end: 24 },
-  { time: '20:30-21:15', start: 25, end: 26 }
+  { time: '08:00-08:45', start: 1, end: 1 },
+  { time: '08:50-09:35', start: 2, end: 2 },
+  { time: '10:00-10:45', start: 3, end: 3 },
+  { time: '10:50-11:35', start: 4, end: 4 },
+  { time: '11:40-12:25', start: 5, end: 5 },
+  { time: '13:25-14:10', start: 6, end: 6 },
+  { time: '14:15-15:00', start: 7, end: 7 },
+  { time: '15:05-15:50', start: 8, end: 8 },
+  { time: '16:15-17:00', start: 9, end: 9 },
+  { time: '17:05-17:50', start: 10, end: 10 },
+  { time: '18:50-19:35', start: 11, end: 11 },
+  { time: '19:40-20:25', start: 12, end: 12 },
+  { time: '20:30-21:15', start: 13, end: 13 }
 ]);
 
 const scheduleData = ref([]);
@@ -118,10 +118,9 @@ const getCourse = (day, timeSlot) => {
     course.day === day &&
     course.timeSlot.start <= timeSlot.start &&
     course.timeSlot.end >= timeSlot.end &&
-    course.week === filterForm.week
+    course.teacherId === currentTeacherId.value
   );
 };
-
 
 const isCourseStart = (day, timeSlot) => {
   const course = getCourse(day, timeSlot);
@@ -129,18 +128,15 @@ const isCourseStart = (day, timeSlot) => {
   return course.timeSlot.start === timeSlot.start;
 };
 
-
 const getCourseRowspan = (day, timeSlot) => {
   const course = getCourse(day, timeSlot);
   if (!course) return 1;
-
 
   const startIndex = timeSlots.value.findIndex(slot => slot.start === course.timeSlot.start);
   const endIndex = timeSlots.value.findIndex(slot => slot.end === course.timeSlot.end);
 
   return (endIndex - startIndex) + 1;
 };
-
 
 const getCourseTimeRange = (course) => {
   if (!course) return '';
@@ -150,70 +146,103 @@ const getCourseTimeRange = (course) => {
   return `${startSlot.time.split('-')[0]}~${endSlot.time.split('-')[1]}`;
 };
 
+const getTimeSlotByPeriod = (period) => {
+  return timeSlots.value.find(slot => slot.start === period);
+};
+
 const handleQuery = async () => {
   loading.value = true;
   scheduleData.value = [];
   try {
-    const response = await axios.get(`/api/schedules/teacher/${currentTeacherId.value}`, {
+    const response = await axios.get('/api/sections/query', {
       params: {
-        week: filterForm.week
+        teacher_id: currentTeacherId.value,
+        semester: filterForm.semester,
+        sec_year: filterForm.sec_year
       }
     });
-    if (response.data) {
-      scheduleData.value = response.data.map(item => ({
-        id: item.section_id, 
-        day: getDayOfWeek(item.sec_time), 
-        timeSlot: getTimeSlot(item.sec_time), 
-        name: item.course_id, 
-        classroom_id: item.classroom_id,
-        week: item.week 
-      }));
+    const responseData = response.data;
+
+    if (responseData && responseData.length > 0) {
+
+      // 处理课程数据
+      scheduleData.value = responseData.flatMap(item => {
+        const { secTime, courseName, classroomId, classroomName } = item;
+        const timeEntries = secTime.split(';').map(entry => entry.trim());
+        return timeEntries.map(entry => {
+          const [dayStr, periodStr] = entry.split(' ');
+          const period = parseInt(periodStr);
+          const timeSlot = getTimeSlotByPeriod(period);
+          const day = getDayOfWeekFromString(dayStr);
+
+          if (timeSlot && day) {
+            return {
+              teacherId: currentTeacherId.value,
+              day: day,
+              timeSlot: { start: period, end: period }, // 假设每节课持续一个 timeSlot
+              courseName: courseName,
+              classroomId: classroomId,
+              classroomName: classroomName,
+            };
+          }
+          return null;
+        }).filter(Boolean); // 过滤掉处理失败的数据
+      });
+
+      // 处理连堂课程，合并 rowspan
+      scheduleData.value.forEach((course, index) => {
+        if (!course || course._merged) return; // 跳过已处理或空课程
+
+        let rowspan = 1;
+        for (let i = index + 1; i < scheduleData.value.length; i++) {
+          const nextCourse = scheduleData.value[i];
+          if (
+            nextCourse &&
+            !nextCourse._merged &&
+            nextCourse.day === course.day &&
+            nextCourse.timeSlot.start === course.timeSlot.end + 1 &&
+            nextCourse.courseName === course.courseName &&
+            nextCourse.classroomId === course.classroomId &&
+            nextCourse.teacherId === course.teacherId
+          ) {
+            rowspan++;
+            course.timeSlot.end = nextCourse.timeSlot.end;
+            nextCourse._merged = true; // 标记为已合并
+          } else {
+            break;
+          }
+        }
+        course._rowspan = rowspan;
+      });
+
       ElMessage.success('查询成功');
     } else {
-      ElMessage.info('该教师本周没有课程安排');
+      ElMessage.info('没有课程安排数据');
     }
   } catch (error) {
-    ElMessage.error('获取教师课表失败');
+    ElMessage.error('获取教师课表失败，请检查 public 目录下是否存在 teacherSchedule.json 文件');
     console.error('获取教师课表失败:', error);
   } finally {
     loading.value = false;
   }
 };
 
-// 辅助函数：根据后端返回的 sec_time 格式解析出星期几 
-const getDayOfWeek = (secTime) => {
-  // 示例：如果 secTime 是 "周一 10:00 - 11:35"
-  if (secTime && secTime.startsWith('周一')) return 'Monday';
-  if (secTime && secTime.startsWith('周二')) return 'Tuesday';
-  if (secTime && secTime.startsWith('周三')) return 'Wednesday';
-  if (secTime && secTime.startsWith('周四')) return 'Thursday';
-  if (secTime && secTime.startsWith('周五')) return 'Friday';
-  if (secTime && secTime.startsWith('周六')) return 'Saturday';
-  if (secTime && secTime.startsWith('周日')) return 'Sunday';
-  return '';
-};
-
-// 辅助函数：根据后端返回的 sec_time 格式解析出开始和结束时间段 (需要根据你的实际格式和时间段定义调整)
-const getTimeSlot = (secTime) => {
-  // 示例：如果 secTime 是 "周一 08:50 - 09:35"
-  if (secTime && secTime.includes('08:00')) return { start: 1, end: 2 };
-  if (secTime && secTime.includes('08:50')) return { start: 3, end: 4 };
-  if (secTime && secTime.includes('10:00')) return { start: 5, end: 6 };
-  if (secTime && secTime.includes('10:50')) return { start: 7, end: 8 };
-  if (secTime && secTime.includes('11:40')) return { start: 9, end: 10 };
-  if (secTime && secTime.includes('13:25')) return { start: 11, end: 12 };
-  if (secTime && secTime.includes('14:15')) return { start: 13, end: 14 };
-  if (secTime && secTime.includes('15:05')) return { start: 15, end: 16 };
-  if (secTime && secTime.includes('16:15')) return { start: 17, end: 18 };
-  if (secTime && secTime.includes('17:05')) return { start: 19, end: 20 };
-  if (secTime && secTime.includes('18:50')) return { start: 21, end: 22 };
-  if (secTime && secTime.includes('19:40')) return { start: 23, end: 24 };
-  if (secTime && secTime.includes('20:30')) return { start: 25, end: 26 };
-  return { start: 0, end: 0 }; // 默认值
+// 关键修改：根据英文星期标识获取 weekDays 中的 label
+const getDayOfWeekFromString = (dayStr) => {
+  const dayMap = {
+    'Monday': 'Monday',
+    'Tuesday': 'Tuesday',
+    'Wednesday': 'Wednesday',
+    'Thursday': 'Thursday',
+    'Friday': 'Friday',
+    'Saturday': 'Saturday',
+    'Sunday': 'Sunday'
+  };
+  return dayMap[dayStr] || '';
 };
 
 onMounted(() => {
-  // currentTeacher 和 currentTeacherId 从用户的登录信息或全局状态中获取
+  handleQuery(); // 页面加载时自动查询课表
 });
 </script>
 
@@ -245,7 +274,6 @@ onMounted(() => {
 
 .filter-item {
   margin-bottom: 0;
-  min-width: 200px;
 }
 
 .schedule-container {

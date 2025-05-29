@@ -5,7 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 import com.Main.entity.Classroom;
-import com.Main.service.lesson.LessonScheduler;
+import com.Main.service.arrange.LessonScheduler;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

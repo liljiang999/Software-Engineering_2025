@@ -1,4 +1,4 @@
-package com.Main.service.lesson;
+package com.Main.service.arrange;
 
 import java.util.List;
 

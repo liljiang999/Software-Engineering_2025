@@ -1,4 +1,4 @@
-package com.Main.web.lesson;
+package com.Main.web.arrange;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import com.Main.service.lesson.LessonScheduler;
+
+import com.Main.dto.arrange.SectionDTO;
 import com.Main.entity.Classroom;
 import com.Main.entity.Section;
-import com.Main.entity.lesson.LessonScheduleFilter;
+import com.Main.entity.arrange.LessonScheduleFilter;
+import com.Main.service.arrange.LessonScheduler;
 import com.Main.entity.Course;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,8 @@ import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @RestController
 public class LessonController {
@@ -29,6 +33,9 @@ public class LessonController {
 
     @Autowired
     private LessonScheduler lessonScheduler;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @PostMapping("/api/classrooms")
     public ResponseEntity<?> addClassroom(@RequestBody Classroom classroom) {
@@ -173,39 +180,40 @@ public class LessonController {
             @RequestParam(required = false) Integer capacity,
             @RequestParam(required = false) String semester,
             @RequestParam(required = false) Integer sec_year,
-            @RequestParam(required = false) String sec_time) {
+            @RequestParam(required = false) String sec_time,
+            @RequestParam(required = false) Integer teacher_id
+            ) {
         try {
-            Section sectionFilter = new Section();
+            Section section = new Section();
+            SectionDTO sectionFilter = new SectionDTO(section);
+            List<SectionDTO> schedules;
             if (section_id != null) sectionFilter.setId(section_id);
             if (course_id != null) sectionFilter.setCourseId(course_id);
             if (classroom_id != null) sectionFilter.setClassroomId(classroom_id);
             if (capacity != null) sectionFilter.setCapacity(capacity);
             if (semester != null) {
                 sectionFilter.setSemester(semester);
-                //decode the semester
-                sectionFilter.setSemester(URLDecoder.decode(semester, "UTF-8"));
+                if (semester.equals("spring_summer")) {
+                    sectionFilter.setSemester("春夏");
+                } else if (semester.equals("autumn_winter")) {
+                    sectionFilter.setSemester("秋冬");
+                }
+                else{
+                    //decode the semester
+                    sectionFilter.setSemester(URLDecoder.decode(semester, "UTF-8"));
+                }
             }
             if (sec_year != null) sectionFilter.setSecYear(sec_year);
             if (sec_time != null) sectionFilter.setSecTime(sec_time);
-            List<Section> schedules = lessonScheduler.showSchedule(sectionFilter);
+            if (teacher_id != null) 
+                schedules = lessonScheduler.showSchedule(sectionFilter,teacher_id);
+            else
+                schedules = lessonScheduler.showSchedule(sectionFilter);
             return ResponseEntity.ok(schedules);
         } catch (Exception e) {
             logger.error("获取课表失败", e);
             Map<String, String> response = new HashMap<>();
             response.put("error", "获取课表失败: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
-
-    @GetMapping("/api/sections/teacher/{teacher_id}")
-    public ResponseEntity<?> getSchedulesByTeacherId(@PathVariable("teacher_id") int teacherId) {
-        try {
-            List<Section> schedules = lessonScheduler.showSchedule(teacherId);
-            return ResponseEntity.ok(schedules);
-        } catch (Exception e) {
-            logger.error("获取教师课表失败", e);
-            Map<String, String> response = new HashMap<>();
-            response.put("error", "获取教师课表失败: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

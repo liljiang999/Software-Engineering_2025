@@ -1,9 +1,11 @@
-package com.Main.service.lesson;
+package com.Main.service.arrange;
 
 import com.Main.entity.Section;
+import com.Main.entity.arrange.LessonScheduleFilter;
 import com.Main.entity.Course;
 import com.Main.entity.Classroom;
 import com.Main.RowMapper.SectionRowMapper;
+import com.Main.dto.arrange.SectionDTO;
 import com.Main.RowMapper.ClassroomRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,11 +17,10 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.HashMap;
-import com.Main.entity.lesson.LessonScheduleFilter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.Main.RowMapper.CourseRowMapper;
-
 @Component
 public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
     
@@ -365,7 +366,7 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
     @Override
     public boolean checkSchedule(String semester, int secYear) {
         //检查教师和教室是否有同一时间上两节课的冲突
-        var sectionFilter = new Section();
+        var sectionFilter = new SectionDTO(new Section());
         sectionFilter.setSemester(semester);
         sectionFilter.setSecYear(secYear);
         var sectionList = showSchedule(sectionFilter);
@@ -415,8 +416,29 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
         return true;
     }
 
+    private String getCourseNameByCourseId(int courseId){
+        String sql = "SELECT course_name FROM course WHERE course_id = ?";
+        return jdbcTemplate.queryForObject(sql, String.class, courseId);
+    }
+
+    private String getTeacherNameByCourseId(int courseId){
+        String sql = "SELECT u.name FROM user u JOIN course c ON u.user_id = c.teacher_id WHERE c.course_id = ?";
+        return jdbcTemplate.queryForObject(sql, String.class, courseId);
+    }
+
+    private int getTeacherIdByCourseId(int courseId){
+        logger.info("getTeacherIdByCourseId: {}", courseId);
+        String sql = "SELECT teacher_id FROM course WHERE course_id = ?";
+        return jdbcTemplate.queryForObject(sql, Integer.class, courseId);
+    }
+
+    private String getClassroomNameByClassroomId(int classroomId){
+        String sql = "SELECT location FROM classroom WHERE classroom_id = ?";
+        return jdbcTemplate.queryForObject(sql, String.class, classroomId);
+    }
+
     @Override
-    public List<Section> showSchedule(Section sectionFilter) {
+    public List<SectionDTO> showSchedule(SectionDTO sectionFilter) {
         StringBuilder sql = new StringBuilder("SELECT * FROM section WHERE 1=1");
         List<Object> params = new ArrayList<>();
         
@@ -448,14 +470,28 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             sql.append(" AND capacity = ?");
             params.add(sectionFilter.getCapacity());
         }
-        return jdbcTemplate.query(sql.toString(), params.toArray(), new SectionRowMapper());
+        List<Section> sections = jdbcTemplate.query(sql.toString(), params.toArray(), new SectionRowMapper());
+        List<SectionDTO> sectionDTOs = new ArrayList<>();
+        for(Section section : sections){
+            SectionDTO sectionDTO = new SectionDTO(section);
+            sectionDTO.setCourseName(getCourseNameByCourseId(section.getCourseId()));
+            sectionDTO.setTeacherName(getTeacherNameByCourseId(section.getCourseId()));
+            sectionDTO.setClassroomName(getClassroomNameByClassroomId(section.getClassroomId()));
+            sectionDTOs.add(sectionDTO);
+        }
+        return sectionDTOs;
     }
 
     @Override
-    public List<Section> showSchedule(int teacherId) {
-        //teacherId 仅在 course 表中存在
-        String sql = "SELECT * FROM section WHERE course_id IN (SELECT course_id FROM course WHERE teacher_id = ?)";
-        return jdbcTemplate.query(sql, new SectionRowMapper(), teacherId);
+    public List<SectionDTO> showSchedule(SectionDTO sectionFilter,int teacherId) {
+        List<SectionDTO> sectionDTOs = showSchedule(sectionFilter);
+        List<SectionDTO> filteredSectionDTOs = new ArrayList<>();
+        for(SectionDTO sectionDTO : sectionDTOs){
+            if(getTeacherIdByCourseId(sectionDTO.getCourseId()) == teacherId){
+                filteredSectionDTOs.add(sectionDTO);
+            }
+        }
+        return filteredSectionDTOs;
     }
 
     @Override

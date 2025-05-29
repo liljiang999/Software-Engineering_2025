@@ -12,11 +12,19 @@
           <div class="filter-row">
             <el-form-item label="教室" class="filter-item same-size">
               <el-autocomplete
-                v-model="filterForm.classroom"
+                v-model="filterForm.classroomId"
                 :fetch-suggestions="queryClassrooms"
-                placeholder="请输入教室ID"
+                placeholder="请输入教室位置或类型"
                 @select="handleClassroomSelect"
-              />
+                :trigger-on-focus="true"
+                class="classroom-select"
+              >
+                <template #default="{ item }">
+                  <div class="classroom-option">
+                    <span>{{ item.label }}</span>
+                  </div>
+                </template>
+              </el-autocomplete>
             </el-form-item>
             <el-form-item label="学期" class="filter-item same-size">
               <el-select v-model="filterForm.semester" placeholder="请选择学期">
@@ -25,14 +33,7 @@
               </el-select>
             </el-form-item>
             <el-form-item label="学年" class="filter-item same-size">
-              <el-select v-model="filterForm.secYear" placeholder="请选择学年">
-                <el-option
-                  v-for="year in [2024, 2025, 2026]"
-                  :key="year"
-                  :label="year"
-                  :value="year"
-                />
-              </el-select>
+              <el-input v-model="filterForm.sec_year" placeholder="请输入学年" />
             </el-form-item>
             <el-button type="primary" @click="handleQuery" :loading="loading">
               查询
@@ -52,7 +53,7 @@
             </tr>
           </thead>
           <tbody>
-            <template v-for="(timeSlot, index) in timeSlots" :key="timeSlot.time">
+            <template v-for="timeSlot in timeSlots" :key="timeSlot.time">
               <tr>
                 <td class="time-slot">{{ timeSlot.time }}</td>
                 <td
@@ -67,8 +68,8 @@
                   v-show="isCourseStart(day.value, timeSlot) || !getCourse(day.value, timeSlot)"
                 >
                   <div v-if="isCourseStart(day.value, timeSlot)" class="course-info">
-                    <div class="course-name">课程ID: {{ getCourse(day.value, timeSlot).name }}</div>
-                    <div class="teacher">容量: {{ getCourse(day.value, timeSlot).capacity }}/{{ getCourse(day.value, timeSlot).availableCapacity }}</div>
+                    <div class="course-name">{{ getCourse(day.value, timeSlot).courseName }}</div>
+                    <div class="teacher">{{ getCourse(day.value, timeSlot).teacher || '未指定教师' }}</div>
                     <div class="time-range">{{ getCourseTimeRange(getCourse(day.value, timeSlot)) }}</div>
                   </div>
                 </td>
@@ -87,38 +88,34 @@ import { ElMessage } from 'element-plus';
 import axios from 'axios';
 
 const filterForm = reactive({
-  classroom: '',
-  classroomId: '',
-  semester: '春夏',
-  secYear: new Date().getFullYear()
+  classroomId: '', // 默认教室ID
+  semester: '春夏', // 默认学期
+  sec_year: new Date().getFullYear().toString(), // 默认当前学年
 });
 
 const loading = ref(false);
-const classrooms = ref([]);
 
 const queryClassrooms = async (query, callback) => {
   try {
     const response = await axios.get('/api/classrooms/query', {
-      params: { location: query }
+      params: { query: query }
     });
     if (response.data) {
-      callback(response.data.map(item => ({ 
-        value: item.location,
-        id: item.id
+      callback(response.data.map(item => ({
+        value: item.id.toString(),
+        label: `${item.location} (${item.category}教室, 容量:${item.capacity})`
       })));
     } else {
       callback([]);
     }
   } catch (error) {
-    ElMessage.error('获取教室失败');
-    console.error('获取教室失败:', error);
+    console.error('获取教室列表失败:', error);
     callback([]);
   }
 };
 
 const handleClassroomSelect = (item) => {
-  filterForm.classroom = item.value;
-  filterForm.classroomId = item.id;
+  filterForm.classroomId = item.value;
 };
 
 const weekDays = ref([
@@ -132,19 +129,19 @@ const weekDays = ref([
 ]);
 
 const timeSlots = ref([
-  { time: '08:00-08:45', start: 1, end: 2 },
-  { time: '08:50-09:35', start: 3, end: 4 },
-  { time: '10:00-10:45', start: 5, end: 6 },
-  { time: '10:50-11:35', start: 7, end: 8 },
-  { time: '11:40-12:25', start: 9, end: 10 },
-  { time: '13:25-14:10', start: 11, end: 12 },
-  { time: '14:15-15:00', start: 13, end: 14 },
-  { time: '15:05-15:50', start: 15, end: 16 },
-  { time: '16:15-17:00', start: 17, end: 18 },
-  { time: '17:05-17:50', start: 19, end: 20 },
-  { time: '18:50-19:35', start: 21, end: 22 },
-  { time: '19:40-20:25', start: 23, end: 24 },
-  { time: '20:30-21:15', start: 25, end: 26 }
+  { time: '08:00-08:45', start: 1, end: 1 },
+  { time: '08:50-09:35', start: 2, end: 2 },
+  { time: '10:00-10:45', start: 3, end: 3 },
+  { time: '10:50-11:35', start: 4, end: 4 },
+  { time: '11:40-12:25', start: 5, end: 5 },
+  { time: '13:25-14:10', start: 6, end: 6 },
+  { time: '14:15-15:00', start: 7, end: 7 },
+  { time: '15:05-15:50', start: 8, end: 8 },
+  { time: '16:15-17:00', start: 9, end: 9 },
+  { time: '17:05-17:50', start: 10, end: 10 },
+  { time: '18:50-19:35', start: 11, end: 11 },
+  { time: '19:40-20:25', start: 12, end: 12 },
+  { time: '20:30-21:15', start: 13, end: 13 }
 ]);
 
 const scheduleData = ref([]);
@@ -154,7 +151,7 @@ const getCourse = (day, timeSlot) => {
     course.day === day &&
     course.timeSlot.start <= timeSlot.start &&
     course.timeSlot.end >= timeSlot.end &&
-    course.classroom_id === filterForm.classroomId
+    course.classroomId === parseInt(filterForm.classroomId)
   );
 };
 
@@ -167,95 +164,102 @@ const isCourseStart = (day, timeSlot) => {
 const getCourseRowspan = (day, timeSlot) => {
   const course = getCourse(day, timeSlot);
   if (!course) return 1;
-
-  const startIndex = timeSlots.value.findIndex(slot => slot.start === course.timeSlot.start);
-  const endIndex = timeSlots.value.findIndex(slot => slot.end === course.timeSlot.end);
-
-  return (endIndex - startIndex) + 1;
+  return course.timeSlot.end - course.timeSlot.start + 1;
 };
 
 const getCourseTimeRange = (course) => {
   if (!course) return '';
   const startSlot = timeSlots.value.find(slot => slot.start === course.timeSlot.start);
   const endSlot = timeSlots.value.find(slot => slot.end === course.timeSlot.end);
-  
-  if (!startSlot || !endSlot) return '';
   return `${startSlot.time.split('-')[0]}~${endSlot.time.split('-')[1]}`;
 };
 
 const handleQuery = async () => {
+  if (!filterForm.classroomId) {
+    ElMessage.warning('请选择教室');
+    return;
+  }
+
   loading.value = true;
   scheduleData.value = [];
   try {
+    // 1. 直接从 sections.json 获取数据
     const response = await axios.get('/api/sections/query', {
       params: {
         classroom_id: filterForm.classroomId,
         semester: filterForm.semester,
-        sec_year: filterForm.secYear
+        year: filterForm.sec_year
       }
     });
-    if (response.data) {
-      scheduleData.value = response.data.map(item => ({
-        id: item.id,
-        day: getDayOfWeek(item.secTime), 
-        timeSlot: getTimeSlot(item.secTime), 
-        name: item.courseId,
-        teacher: '待定', 
-        classroom_id: item.classroomId,
-        capacity: item.capacity,
-        availableCapacity: item.availableCapacity,
-        semester: item.semester,
-        secYear: item.secYear
-      }));
+    if (response.data && response.data.length > 0) {
+      // 2. 筛选出所选教室的数据
+      const filteredData = response.data.filter(item =>
+        item.classroomId.toString() === filterForm.classroomId
+      );
+
+      if (filteredData.length === 0) {
+        ElMessage.info('该教室没有课程安排');
+        return;
+      }
+
+      // 3. 处理筛选后的数据
+      scheduleData.value = filteredData.map(item => {
+        const processedData = [];
+        const times = item.secTime.split(';').map(t => t.trim());
+        const timeGroups = {};
+        times.forEach(time => {
+          const [dayOfWeekStr, timeNum] = time.split(' ');
+          if (!timeGroups[dayOfWeekStr]) {
+            timeGroups[dayOfWeekStr] = [];
+          }
+          timeGroups[dayOfWeekStr].push(parseInt(timeNum));
+        });
+
+        Object.entries(timeGroups).forEach(([dayOfWeekStr, timeNums]) => {
+          const day = getDayOfWeekFromString(dayOfWeekStr);
+          const start = Math.min(...timeNums);
+          const end = Math.max(...timeNums);
+
+          processedData.push({
+            id: item.id,
+            courseId: item.courseId,
+            classroomId: item.classroomId,
+            day: day,
+            timeSlot: { start, end },
+            courseName: item.courseName,
+            teacher: item.teacherName || '未指定教师',
+          });
+        });
+        return processedData;
+      }).flat();
+
       ElMessage.success('查询成功');
     } else {
-      ElMessage.info('该教室本学期没有课程安排');
+      ElMessage.info('没有课程安排数据');
     }
   } catch (error) {
-    ElMessage.error('获取教室课表失败');
+    ElMessage.error('获取教室课表失败:' + error);
     console.error('获取教室课表失败:', error);
   } finally {
     loading.value = false;
   }
 };
 
-const getDayOfWeek = (secTime) => {
-  if (!secTime) return '';
-  const day = secTime.split(' ')[0];
-  switch(day) {
-    case 'Monday': return 'Monday';
-    case 'Tuesday': return 'Tuesday';
-    case 'Wednesday': return 'Wednesday';
-    case 'Thursday': return 'Thursday';
-    case 'Friday': return 'Friday';
-    case 'Saturday': return 'Saturday';
-    case 'Sunday': return 'Sunday';
-    default: return '';
-  }
-};
-
-const getTimeSlot = (secTime) => {
-  if (!secTime) return { start: 0, end: 0 };
-  
-  const timeSlots = secTime.split(';').map(slot => parseInt(slot.trim().split(' ')[1]));
-  if (timeSlots.length === 0) return { start: 0, end: 0 };
-  
-  return {
-    start: timeSlots[0],
-    end: timeSlots[timeSlots.length - 1]
+const getDayOfWeekFromString = (dayStr) => {
+  const dayMap = {
+    'Monday': 'Monday',
+    'Tuesday': 'Tuesday',
+    'Wednesday': 'Wednesday',
+    'Thursday': 'Thursday',
+    'Friday': 'Friday',
+    'Saturday': 'Saturday',
+    'Sunday': 'Sunday'
   };
+  return dayMap[dayStr] || '';
 };
 
-onMounted(async () => {
-  try {
-    const response = await axios.get('/api/classrooms/query');
-    if (response.data) {
-      classrooms.value = response.data.map(item => item.classroom_id);
-    }
-  } catch (error) {
-    ElMessage.error('获取教室列表失败');
-    console.error('获取教室列表失败:', error);
-  }
+onMounted(() => {
+  // 页面加载时不进行自动查询，等待用户选择教室后点击查询
 });
 </script>
 
@@ -352,5 +356,17 @@ onMounted(async () => {
 .time-range {
   font-size: 0.8em;
   color: #888;
+}
+
+.classroom-select {
+  width: 100%;
+}
+
+.classroom-option {
+  padding: 4px 0;
+}
+
+.classroom-option span {
+  font-size: 14px;
 }
 </style>

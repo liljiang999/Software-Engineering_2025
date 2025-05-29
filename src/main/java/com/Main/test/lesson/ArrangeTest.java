@@ -4,13 +4,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import jakarta.annotation.PostConstruct;
-import com.Main.service.lesson.LessonScheduler;
+
 import com.Main.test.utils.Utils;
 import com.Main.entity.User;
+import com.Main.entity.arrange.LessonScheduleFilter;
+import com.Main.service.arrange.LessonScheduler;
+import com.Main.dto.arrange.SectionDTO;
 import com.Main.entity.Classroom;
 import com.Main.entity.Course;
 import com.Main.entity.Section;
-import com.Main.entity.lesson.LessonScheduleFilter; 
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
@@ -93,10 +96,10 @@ public class ArrangeTest {
         //generate schedule
         lessonScheduler.generateSchedule(filter);
         //query section
-        List<Section> sections = lessonScheduler.showSchedule(teacher.getId());
+        List<SectionDTO> sections = lessonScheduler.showSchedule(new SectionDTO(new Section()),teacher.getId());
         //print section
         logger.info("Sections: ");
-        for (Section section : sections) {
+        for (SectionDTO section : sections) {
             logger.info(section.toString());
         }
     }
@@ -138,10 +141,10 @@ public class ArrangeTest {
         //generate schedule
         lessonScheduler.generateSchedule(filter);
         //query section
-        List<Section> sections = lessonScheduler.showSchedule(teacher.getId());
+        List<SectionDTO> sections = lessonScheduler.showSchedule(new SectionDTO(new Section()),teacher.getId());
         //print section
         logger.info("Sections: ");
-        for (Section section : sections) {
+        for (SectionDTO section : sections) {
             logger.info(section.toString());
         }
     }
@@ -180,9 +183,9 @@ public class ArrangeTest {
         lessonScheduler.generateSchedule(filter);
         //query section
         for (User teacher : teachers) {
-            List<Section> sections = lessonScheduler.showSchedule(teacher.getId());
+            List<SectionDTO> sections = lessonScheduler.showSchedule(new SectionDTO(new Section()),teacher.getId());
             logger.info("Sections: ");
-            for (Section section : sections) {
+            for (SectionDTO section : sections) {
                 logger.info(section.toString());
             }
         }

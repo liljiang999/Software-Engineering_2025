@@ -1,4 +1,4 @@
-package com.Main.entity.lesson;
+package com.Main.entity.arrange;
 
 import java.util.List;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

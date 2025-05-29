@@ -1,7 +1,9 @@
-package com.Main.service.lesson;
+package com.Main.service.arrange;
 
+import com.Main.dto.arrange.SectionDTO;
 import com.Main.entity.Section;
-import com.Main.entity.lesson.LessonScheduleFilter;
+import com.Main.entity.arrange.LessonScheduleFilter;
+
 import java.util.List;
 
 public interface AutoManualScheduler {
@@ -10,6 +12,6 @@ public interface AutoManualScheduler {
     public void deleteSchedule(int sectionId);
     public void updateSchedule(int sectionId, Section updateInfo);
     public boolean checkSchedule(String semester, int secYear);
-    public List<Section> showSchedule(Section sectionFilter);
-    public List<Section> showSchedule(int teacherId);
+    public List<SectionDTO> showSchedule(SectionDTO sectionFilter);
+    public List<SectionDTO> showSchedule(SectionDTO sectionFilter,int teacherId);
 }
