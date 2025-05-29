@@ -269,7 +269,7 @@
           queryParams[key] = filterForm[key]
         }
       }
-      const response = await axios.get('/api/sections/query', {
+      const response = await axios.get('/arrange/api/sections/query', {
         params: queryParams
       })
       if (response.data) {
@@ -340,10 +340,10 @@
         availableCapacity: parseInt(formData.available_capacity)
       }
       if (dialogMode.value === 'add') {
-        await axios.post('/api/sections', payload)
+        await axios.post('/arrange/api/sections', payload)
       } else {
         payload.Id = parseInt(formData.section_id)
-        await axios.put(`/api/sections/${formData.section_id}`, payload)
+        await axios.put(`/arrange/api/sections/${formData.section_id}`, payload)
       }
       ElMessage.success(`${dialogMode.value === 'add' ? '添加' : '修改'}成功！`)
       formDialogVisible.value = false

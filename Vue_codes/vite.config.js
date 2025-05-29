@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     // send all requests with /api to the backend
     proxy: {
-      '/api': {
+      '/arrange/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },

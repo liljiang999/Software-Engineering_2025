@@ -152,7 +152,7 @@ const handleFilter = async () => {
     }
 
 
-    const response = await axios.get('/api/classrooms/query', { // 假设存在查询接口
+    const response = await axios.get('/arrange/api/classrooms/query', { // 假设存在查询接口
       params: queryParams,
     });
 
@@ -192,7 +192,7 @@ const openEditDialog = (row) => {
 const saveEdit = async () => {
   editLoading.value = true;
   try {
-    const response = await axios.put(`/api/classrooms/${editFormData.id}`, {
+    const response = await axios.put(`/arrange/api/classrooms/${editFormData.id}`, {
       location: editFormData.location,
       capacity: editFormData.capacity,
       category: editFormData.category,

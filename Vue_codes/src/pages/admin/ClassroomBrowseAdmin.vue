@@ -94,7 +94,7 @@ const handleQuery = async () => {
     }
 
 
-    const response = await axios.get('/api/classrooms/query', {// 发送查询请求
+    const response = await axios.get('/arrange/api/classrooms/query', {// 发送查询请求
       params: queryParams
     });
 

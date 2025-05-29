@@ -108,7 +108,7 @@ const handleFilter = async () => {
       return;
     }
 
-    const response = await axios.get('/api/classrooms/query', { // 假设存在查询接口
+    const response = await axios.get('/arrange/api/classrooms/query', { // 假设存在查询接口
       params: queryParams,
     });
 
@@ -150,7 +150,7 @@ const handleDelete = async (index, classroomId) => {
     .then(async () => {
       deleteLoading.value = classroomId;
       try {
-        await axios.delete(`/api/classrooms/${classroomId}`);
+        await axios.delete(`/arrange/api/classrooms/${classroomId}`);
         ElMessage.success(`教室 ID ${classroomId} 删除成功`);
         classroomList.value.splice(index, 1); // 从列表中移除删除的教室
       } catch (error) {

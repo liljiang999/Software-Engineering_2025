@@ -154,7 +154,7 @@ const handleQuery = async () => {
   loading.value = true;
   scheduleData.value = [];
   try {
-    const response = await axios.get('/api/sections/query', {
+    const response = await axios.get('/arrange/api/sections/query', {
       params: {
         teacher_id: currentTeacherId.value,
         semester: filterForm.semester,

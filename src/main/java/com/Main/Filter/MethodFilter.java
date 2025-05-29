@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
-//@WebFilter(value = "/api/*", filterName = "MethodFilter") // Springboot 对Filter配置拦截资源路径的方法。
+//@WebFilter(value = "/arrange/api/*", filterName = "MethodFilter") // Springboot 对Filter配置拦截资源路径的方法。
 public class MethodFilter implements Filter {
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());

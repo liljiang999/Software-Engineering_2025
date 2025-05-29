@@ -97,7 +97,7 @@ const loading = ref(false);
 
 const queryClassrooms = async (query, callback) => {
   try {
-    const response = await axios.get('/api/classrooms/query', {
+    const response = await axios.get('/arrange/api/classrooms/query', {
       params: { query: query }
     });
     if (response.data) {
@@ -184,7 +184,7 @@ const handleQuery = async () => {
   scheduleData.value = [];
   try {
     // 1. 直接从 sections.json 获取数据
-    const response = await axios.get('/api/sections/query', {
+    const response = await axios.get('/arrange/api/sections/query', {
       params: {
         classroom_id: filterForm.classroomId,
         semester: filterForm.semester,

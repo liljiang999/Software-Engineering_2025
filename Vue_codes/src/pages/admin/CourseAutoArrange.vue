@@ -205,7 +205,7 @@ const generateSchedule = async () => {
     progressPercent.value = 30;
     progressMessage.value = '正在向服务器发送请求...';
     
-    const response = await axios.post('/api/schedules/generate', scheduleConfig);
+    const response = await axios.post('/arrange/api/schedules/generate', scheduleConfig);
 
     progressPercent.value = 70;
     progressMessage.value = '服务器正在处理排课...';
@@ -248,7 +248,7 @@ const resetConfig = () => {
 
 onMounted(async () => {
   try {
-    const response = await axios.get('/api/courses');
+    const response = await axios.get('/arrange/api/courses');
     courses.value = response.data;
   } catch (error) {
     ElMessage.error('获取课程数据失败');

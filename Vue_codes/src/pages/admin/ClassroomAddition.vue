@@ -106,7 +106,7 @@ const handleAddition = async () => {
     };
     
     // API
-    const response = await axios.post('/api/classrooms', requestData);
+    const response = await axios.post('/arrange/api/classrooms', requestData);
     
     // 成功处理
     ElNotification({

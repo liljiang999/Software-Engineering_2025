@@ -37,7 +37,7 @@ public class LessonController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @PostMapping("/api/classrooms")
+    @PostMapping("/arrange/api/classrooms")
     public ResponseEntity<?> addClassroom(@RequestBody Classroom classroom) {
         try {
             logger.info("controller add classroom: " + classroom);
@@ -51,7 +51,7 @@ public class LessonController {
         }
     }
 
-    @PutMapping("/api/classrooms/{classroom_id}")
+    @PutMapping("/arrange/api/classrooms/{classroom_id}")
     public ResponseEntity<?> updateClassroom(@PathVariable("classroom_id") int classroomId, @RequestBody Classroom updateInfo) {
         try {
             lessonScheduler.updateClassroom(classroomId, updateInfo);
@@ -64,7 +64,7 @@ public class LessonController {
         }
     }
 
-    @DeleteMapping("/api/classrooms/{classroom_id}")
+    @DeleteMapping("/arrange/api/classrooms/{classroom_id}")
     public ResponseEntity<?> deleteClassroom(@PathVariable("classroom_id") int classroomId) {
         try {
             lessonScheduler.deleteClassroom(classroomId);
@@ -77,7 +77,7 @@ public class LessonController {
         }
     }
 
-    @GetMapping("/api/classrooms/query")
+    @GetMapping("/arrange/api/classrooms/query")
     public ResponseEntity<?> queryClassrooms(
             @RequestParam(required = false) Integer id,
             @RequestParam(required = false) String location,
@@ -105,7 +105,7 @@ public class LessonController {
         }
     }
     
-    @PostMapping("/api/schedules/generate")
+    @PostMapping("/arrange/api/schedules/generate")
     public ResponseEntity<?> generateSchedule(@RequestBody LessonScheduleFilter filter) {
         try {
             // logger.warn("controller generate schedule: " + filter);
@@ -119,7 +119,7 @@ public class LessonController {
         }
     }
 
-    @PostMapping("/api/sections")
+    @PostMapping("/arrange/api/sections")
     public ResponseEntity<?> addSchedule(@RequestBody Section section) {
         try {
             lessonScheduler.addSchedule(section);
@@ -132,7 +132,7 @@ public class LessonController {
         }
     }
 
-    @PutMapping("/api/sections/{section_id}")
+    @PutMapping("/arrange/api/sections/{section_id}")
     public ResponseEntity<?> updateSchedule(@PathVariable("section_id") int sectionId, @RequestBody Section updateInfo) {
         try {
             logger.info("controller update section: " + updateInfo);
@@ -146,7 +146,7 @@ public class LessonController {
         }
     }
     
-    @DeleteMapping("/api/sections/{section_id}")
+    @DeleteMapping("/arrange/api/sections/{section_id}")
     public ResponseEntity<?> deleteSchedule(@PathVariable("section_id") int sectionId) {
         try {
             lessonScheduler.deleteSchedule(sectionId);
@@ -159,7 +159,7 @@ public class LessonController {
         }
     }
 
-    @GetMapping("/api/sections/check")
+    @GetMapping("/arrange/api/sections/check")
     public ResponseEntity<?> checkSchedule(@RequestBody String semester, @RequestBody int secYear) {
         try {
             boolean result = lessonScheduler.checkSchedule(semester, secYear);
@@ -172,7 +172,7 @@ public class LessonController {
         }
     }
 
-    @GetMapping("/api/sections/query")
+    @GetMapping("/arrange/api/sections/query")
     public ResponseEntity<?> getSchedules(
             @RequestParam(required = false) Integer section_id,
             @RequestParam(required = false) Integer course_id,
@@ -218,7 +218,7 @@ public class LessonController {
         }
     }
 
-    @GetMapping("/api/courses")
+    @GetMapping("/arrange/api/courses")
     public ResponseEntity<?> getCourses() {
         try {
             List<Course> courses = lessonScheduler.showCourses();
