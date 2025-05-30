@@ -101,7 +101,7 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
         }
     }
 
-    private void addPossibleTimeToHeap(PriorityQueue<Arrangement> heap,int hoursPerWeek, int[][] record) {
+    private void addPossibleTimeToHeap(PriorityQueue<Arrangement> heap,int hoursPerWeek, int[][] record, boolean avoidWeekend) {
         //根据连堂节数判断可以安排的时间
         //1.连堂三节，可以安排的时间为：
         //   - 上午：3 4 5
@@ -113,11 +113,13 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                 heap.add(new Arrangement(i, "6,7,8", (record[i][6] + record[i][7] + record[i][8]) / 3.0));
                 heap.add(new Arrangement(i, "11,12,13", (record[i][11] + record[i][12] + record[i][13]) / 3.0));
             }
-            //周末降低优先级
-            for(int i = 6; i <= 7; i++){
-                heap.add(new Arrangement(i, "3,4,5", (record[i][3] + record[i][4] + record[i][5]) / 3.0 * 10));
-                heap.add(new Arrangement(i, "6,7,8", (record[i][6] + record[i][7] + record[i][8]) / 3.0 * 10));
-                heap.add(new Arrangement(i, "11,12,13", (record[i][11] + record[i][12] + record[i][13]) / 3.0 * 10)); 
+            if(!avoidWeekend){
+                //周末降低优先级
+                for(int i = 6; i <= 7; i++){
+                    heap.add(new Arrangement(i, "3,4,5", (record[i][3] + record[i][4] + record[i][5]) / 3.0 * 10));
+                    heap.add(new Arrangement(i, "6,7,8", (record[i][6] + record[i][7] + record[i][8]) / 3.0 * 10));
+                    heap.add(new Arrangement(i, "11,12,13", (record[i][11] + record[i][12] + record[i][13]) / 3.0 * 10)); 
+                }
             }
         }
 
@@ -136,13 +138,15 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                 heap.add(new Arrangement(i, "7,8", (record[i][7] + record[i][8]) / 2.0));
                 heap.add(new Arrangement(i, "11,12", (record[i][11] + record[i][12]) / 2.0));
             }
-            //周末降低优先级
-            for(int i = 6; i <= 7; i++){
-                heap.add(new Arrangement(i, "1,2", (record[i][1] + record[i][2]) / 2.0 * 10));
-                heap.add(new Arrangement(i, "3,4", (record[i][3] + record[i][4]) / 2.0 * 10));
-                heap.add(new Arrangement(i, "6,7", (record[i][6] + record[i][7]) / 2.0 * 10));
-                heap.add(new Arrangement(i, "7,8", (record[i][7] + record[i][8]) / 2.0 * 10));
-                heap.add(new Arrangement(i, "11,12", (record[i][11] + record[i][12]) / 2.0 * 10));
+            if(!avoidWeekend){
+                //周末降低优先级
+                for(int i = 6; i <= 7; i++){
+                    heap.add(new Arrangement(i, "1,2", (record[i][1] + record[i][2]) / 2.0 * 10));
+                    heap.add(new Arrangement(i, "3,4", (record[i][3] + record[i][4]) / 2.0 * 10));
+                    heap.add(new Arrangement(i, "6,7", (record[i][6] + record[i][7]) / 2.0 * 10));
+                    heap.add(new Arrangement(i, "7,8", (record[i][7] + record[i][8]) / 2.0 * 10));
+                    heap.add(new Arrangement(i, "11,12", (record[i][11] + record[i][12]) / 2.0 * 10));
+                }
             }
         }
         //3.连堂一节，可以安排的时间为：
@@ -159,48 +163,56 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                 }
             }
         }
+        
+        //4.连堂四节，可以安排的时间为：
+        // 1234 6789
+        if(hoursPerWeek == 4){
+            for(int i = 1; i <= 5; i++){
+                heap.add(new Arrangement(i, "1,2,3,4", (record[i][1] + record[i][2] + record[i][3] + record[i][4]) / 4.0));
+                heap.add(new Arrangement(i, "6,7,8,9", (record[i][6] + record[i][7] + record[i][8] + record[i][9]) / 4.0));
+            }
+            if(!avoidWeekend){
+                //周末降低优先级
+                for(int i = 6; i <= 7; i++){
+                    heap.add(new Arrangement(i, "1,2,3,4", (record[i][1] + record[i][2] + record[i][3] + record[i][4]) / 4.0 * 10));
+                    heap.add(new Arrangement(i, "6,7,8,9", (record[i][6] + record[i][7] + record[i][8] + record[i][9]) / 4.0 * 10));
+                }
+            }
+        }
 
+        //5.连堂五节，可以安排的时间为：
+        // 12345 678910
+        if(hoursPerWeek == 5){
+            for(int i = 1; i <= 5; i++){
+                heap.add(new Arrangement(i, "1,2,3,4,5", (record[i][1] + record[i][2] + record[i][3] + record[i][4] + record[i][5]) / 5.0));
+                heap.add(new Arrangement(i, "6,7,8,9,10", (record[i][6] + record[i][7] + record[i][8] + record[i][9] + record[i][10]) / 5.0));
+            }
+            if(!avoidWeekend){
+                //周末降低优先级
+                for(int i = 6; i <= 7; i++){
+                    heap.add(new Arrangement(i, "1,2,3,4,5", (record[i][1] + record[i][2] + record[i][3] + record[i][4] + record[i][5]) / 5.0 * 10));
+                    heap.add(new Arrangement(i, "6,7,8,9,10", (record[i][6] + record[i][7] + record[i][8] + record[i][9] + record[i][10]) / 5.0 * 10));
+                }
+            }
+        }
+
+        if(hoursPerWeek > 5){
+            throw new RuntimeException("连堂节数超过5节");
+        }
     }
 
-
-    @Override
-    public void generateSchedule(LessonScheduleFilter filter) {
-        List<Integer> courseIds = filter.getCourses();
-        List<Course> undistributedCourses = new ArrayList<>();
-        for(Integer courseId : courseIds){
-            //从course表中查询courseId对应的课程
-            String sql = "SELECT * FROM course WHERE course_id = ?";
-            Course course = jdbcTemplate.queryForObject(sql, new CourseRowMapper(), courseId);
-            undistributedCourses.add(course);
-        }
+    private List<Section> arrangeCourse(List<Course>courses, LessonScheduleFilter filter){
         var semester = filter.getSemester();
         var secYear = filter.getSecYear();
-        // 排课之前，删除掉当前学期、学年的课程安排
-        deleteCurrentSchedule(semester, secYear);
-        List<Course>courses = new ArrayList<>();
-        //拆分学时>3的课程
-        for (Course course : undistributedCourses) {
-            if(course.getHoursPerWeek() == 4){
-                courses.add(new Course(course, 2));
-                courses.add(new Course(course, 2));
-            }
-            else if(course.getHoursPerWeek() == 5){
-                courses.add(new Course(course, 3));
-                courses.add(new Course(course, 2));
-            }
-            else if(course.getHoursPerWeek() == 6){
-                courses.add(new Course(course, 3));
-                courses.add(new Course(course, 3));
-            }
-            else if(course.getHoursPerWeek() == 7){
-                courses.add(new Course(course, 3));
-                courses.add(new Course(course, 2));
-                courses.add(new Course(course, 2));
-            }
-            else {
-                courses.add(course);
-            }
-        }
+        boolean avoidConsecutive = filter.getConstraints().contains(LessonScheduleFilter.Constraint.avoidConsecutive);
+        boolean teacherGap = filter.getConstraints().contains(LessonScheduleFilter.Constraint.teacherGap);
+        boolean classroomConflict = filter.getConstraints().contains(LessonScheduleFilter.Constraint.classroomConflict);
+        boolean classroomGap = filter.getConstraints().contains(LessonScheduleFilter.Constraint.classroomGap);
+        boolean avoidSingle = filter.getConstraints().contains(LessonScheduleFilter.Constraint.avoidSingle);
+        boolean avoidWeekend = filter.getConstraints().contains(LessonScheduleFilter.Constraint.avoidWeekend);
+        boolean teacherPriority = filter.getPriority().contains(LessonScheduleFilter.Priority.teacher);
+        boolean equipmentPriority = filter.getPriority().contains(LessonScheduleFilter.Priority.equipment);
+        boolean continuityPriority = filter.getPriority().contains(LessonScheduleFilter.Priority.continuity);
 
         //按照hoursPerWeek排序courses
         Collections.sort(courses, new Comparator<Course>() {
@@ -226,7 +238,7 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                 }
             }
             var heap = new PriorityQueue<Arrangement>();
-            addPossibleTimeToHeap(heap, course.getHoursPerWeek(), record);
+            addPossibleTimeToHeap(heap, course.getHoursPerWeek(), record, avoidWeekend);
             boolean successArrange = false;
             do {
                 Arrangement times = heap.poll();
@@ -252,14 +264,16 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                 }
             } while (!heap.isEmpty() && !successArrange);
             if(!successArrange){
-                throw new RuntimeException("无法安排课程");
+                throw new RuntimeException("无法安排课程，课程id：" + course.getId() + "教师冲突");
             }
         }
+        logger.info("安排教师完成");
 
         //安排教室
         Map<Integer, boolean[][]> classroomTimeMap = new HashMap<>();
         List<Classroom> classrooms = queryClassrooms(new Classroom());
         for(Section section : sections){
+            boolean successArrange = false;
             String sectionCategory = getCourseCategory(section.getCourseId());
             for(Classroom classroom : classrooms){
                
@@ -305,17 +319,107 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                             classroomTime[day][Integer.parseInt(time)] = true;
                         }
                     }
+                    successArrange = true;
                     break;
                 }
             } 
+            if(!successArrange){
+                throw new RuntimeException("无法安排课程，课程id：" + section.getCourseId() + "教室冲突");
+            }
         }
-
         logger.info("安排教室完成");
-        
-        
-        //插入数据库
+        return sections;
+    }
+
+    private void addSections(List<Section> sections){
         for(Section section : sections){
             addSchedule(section);
+        }
+    }
+
+    @Override
+    public void generateSchedule(LessonScheduleFilter filter) {
+
+        List<Integer> courseIds = filter.getCourses();
+        List<Course> undistributedCourses = new ArrayList<>();
+        for(Integer courseId : courseIds){
+            //从course表中查询courseId对应的课程
+            String sql = "SELECT * FROM course WHERE course_id = ?";
+            Course course = jdbcTemplate.queryForObject(sql, new CourseRowMapper(), courseId);
+            undistributedCourses.add(course);
+        }
+        var semester = filter.getSemester();
+        var secYear = filter.getSecYear();
+        // 排课之前，删除掉当前学期、学年的课程安排
+        deleteCurrentSchedule(semester, secYear);
+        List<Course>courses = new ArrayList<>();
+
+        //获取排课约束
+        boolean avoidConsecutive = filter.getConstraints().contains(LessonScheduleFilter.Constraint.avoidConsecutive);
+        boolean teacherGap = filter.getConstraints().contains(LessonScheduleFilter.Constraint.teacherGap);
+        boolean classroomConflict = filter.getConstraints().contains(LessonScheduleFilter.Constraint.classroomConflict);
+        boolean classroomGap = filter.getConstraints().contains(LessonScheduleFilter.Constraint.classroomGap);
+        boolean avoidSingle = filter.getConstraints().contains(LessonScheduleFilter.Constraint.avoidSingle);
+        boolean avoidWeekend = filter.getConstraints().contains(LessonScheduleFilter.Constraint.avoidWeekend);
+        boolean teacherPriority = filter.getPriority().contains(LessonScheduleFilter.Priority.teacher);
+        boolean equipmentPriority = filter.getPriority().contains(LessonScheduleFilter.Priority.equipment);
+        boolean continuityPriority = filter.getPriority().contains(LessonScheduleFilter.Priority.continuity);
+
+        for (Course course : undistributedCourses) {
+            if(avoidConsecutive && course.getHoursPerWeek() == 4){
+                courses.add(new Course(course, 2));
+                courses.add(new Course(course, 2));
+            }
+            else if(avoidConsecutive && course.getHoursPerWeek() == 5){
+                courses.add(new Course(course, 3));
+                courses.add(new Course(course, 2));
+            }
+            else if(course.getHoursPerWeek() == 6){
+                courses.add(new Course(course, 3));
+                courses.add(new Course(course, 3));
+            }
+            else if(course.getHoursPerWeek() == 7){
+                courses.add(new Course(course, 3));
+                courses.add(new Course(course, 2));
+                courses.add(new Course(course, 2));
+            }
+            else {
+                courses.add(course);
+            }
+        }
+        
+        try{
+            List<Section> sections = arrangeCourse(courses, filter);
+            addSections(sections);
+        }
+        catch(Exception e){
+            logger.error("第一次排课失败: {}", e.getMessage());
+        }
+        
+        //如果第一次排课失败，则尝试调整课程安排
+        courses.clear();
+
+        for (Course course : undistributedCourses) {
+            if(course.getHoursPerWeek() == 4){
+                courses.add(new Course(course, 2));
+                courses.add(new Course(course, 2));
+            }
+            else if(course.getHoursPerWeek() == 5){
+                courses.add(new Course(course, 3));
+                courses.add(new Course(course, 2));
+            }
+            else if(course.getHoursPerWeek() == 6){
+                courses.add(new Course(course, 3));
+                courses.add(new Course(course, 3));
+            }
+            else if(course.getHoursPerWeek() == 7){
+                courses.add(new Course(course, 3));
+                courses.add(new Course(course, 2));
+                courses.add(new Course(course, 2));
+            }
+            else {
+                courses.add(course);
+            }
         }
     }
 

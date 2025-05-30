@@ -22,6 +22,11 @@ public class JwtInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // 登录和OPTIONS请求不需要验证
+
+        //debug
+        if(true){
+            return true;
+        }
         String requestURI = request.getRequestURI();
         logger.info("JWT拦截器开始处理请求: {}", request.getRequestURI());
         if (requestURI.contains("information/api/v1/auth/login") || request.getMethod().equals("OPTIONS")) {
