@@ -494,7 +494,7 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
 
     @Override
     public void updateSchedule(int sectionId, Section updateInfo) {
-        String sql = "UPDATE section SET course_id = ?, classroom_id = ?, capacity = ?, semester = ?, sec_year = ?, sec_time = ? WHERE section_id = ?";
+        String sql = "UPDATE section SET course_id = ?, classroom_id = ?, capacity = ?, semester = ?, sec_year = ?, sec_time = ?, available_capacity = ? WHERE section_id = ?";
         jdbcTemplate.update(sql,
             updateInfo.getCourseId(),
             updateInfo.getClassroomId(),
@@ -502,12 +502,13 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             updateInfo.getSemester(),
             updateInfo.getSecYear(),
             updateInfo.getSecTime(),
+            updateInfo.getAvailableCapacity(),
             sectionId
         );
     }
 
     @Override
-    public boolean checkSchedule(String semester, int secYear) {
+    public String checkSchedule(String semester, int secYear) {
         //检查教师和教室是否有同一时间上两节课的冲突
         var sectionFilter = new SectionDTO(new Section());
         sectionFilter.setSemester(semester);
@@ -540,23 +541,23 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             var secTime = section.getSecTime();
             var dayStringList = secTime.split("; ");
             for(String dayString : dayStringList){
-                var day = Integer.parseInt(dayString.split(" ")[0]);
+                var day = Arrangement.Week.fromString(dayString.split(" ")[0]).getValue();
                 var timeList = dayString.split(" ")[1].split(",");
                 for(String time : timeList){
                     if(teacherTimeMap.get(teacherId)[day][Integer.parseInt(time)]){
                         logger.error("教师{}在星期{},第{}节课有冲突", teacherId, day, time);
-                        return false;
+                        return "教师" + getTeacherNameByCourseId(teacherId) + "在星期" + day + "第" + time + "节课有冲突";
                     }
                     if(classroomTimeMap.get(classroomId)[day][Integer.parseInt(time)]){
                         logger.error("教室{}在星期{},第{}节课有冲突", classroomId, day, time);
-                        return false;
+                        return "教室" + getClassroomNameByClassroomId(classroomId) + "在星期" + day + "第" + time + "节课有冲突";
                     }
                     teacherTimeMap.get(teacherId)[day][Integer.parseInt(time)] = true;
                     classroomTimeMap.get(classroomId)[day][Integer.parseInt(time)] = true;
                 }
             }
         }
-        return true;
+        return "没有冲突";
     }
 
     private String getCourseNameByCourseId(int courseId){

@@ -11,7 +11,7 @@ public interface AutoManualScheduler {
     public void addSchedule(Section section);
     public void deleteSchedule(int sectionId);
     public void updateSchedule(int sectionId, Section updateInfo);
-    public boolean checkSchedule(String semester, int secYear);
+    public String checkSchedule(String semester, int secYear);
     public List<SectionDTO> showSchedule(SectionDTO sectionFilter);
     public List<SectionDTO> showSchedule(SectionDTO sectionFilter,int teacherId);
 }

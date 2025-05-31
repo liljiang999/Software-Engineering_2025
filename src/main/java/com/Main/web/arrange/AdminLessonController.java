@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
@@ -15,6 +16,7 @@ import com.Main.entity.Section;
 import com.Main.entity.arrange.LessonScheduleFilter;
 import com.Main.service.arrange.LessonScheduler;
 import java.util.Map;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,10 +136,11 @@ public class AdminLessonController {
 
     // 管理员权限：检查课表
     @GetMapping("/arrange/api/sections/check")
-    public ResponseEntity<?> checkSchedule(@RequestBody String semester, @RequestBody int secYear) {
+    public ResponseEntity<?> checkSchedule(@RequestParam(required = true) String semester, @RequestParam(required = true) int year) {        
         try {
-            logger.debug("admin controller check schedule: " + semester + " " + secYear);
-            boolean result = lessonScheduler.checkSchedule(semester, secYear);
+            String decodedSemester = URLDecoder.decode(semester, "UTF-8");
+            logger.debug("admin controller check schedule: " + decodedSemester + " " + year);
+            String result = lessonScheduler.checkSchedule(decodedSemester, year);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             logger.error("检查课表失败", e);
