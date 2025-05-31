@@ -116,9 +116,9 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             if(!avoidWeekend){
                 //周末降低优先级
                 for(int i = 6; i <= 7; i++){
-                    heap.add(new Arrangement(i, "3,4,5", (record[i][3] + record[i][4] + record[i][5]) / 3.0 * 10));
-                    heap.add(new Arrangement(i, "6,7,8", (record[i][6] + record[i][7] + record[i][8]) / 3.0 * 10));
-                    heap.add(new Arrangement(i, "11,12,13", (record[i][11] + record[i][12] + record[i][13]) / 3.0 * 10)); 
+                    heap.add(new Arrangement(i, "3,4,5", (record[i][3] + record[i][4] + record[i][5]) / 3.0 * 10 + 10));
+                    heap.add(new Arrangement(i, "6,7,8", (record[i][6] + record[i][7] + record[i][8]) / 3.0 * 10 + 10));
+                    heap.add(new Arrangement(i, "11,12,13", (record[i][11] + record[i][12] + record[i][13]) / 3.0 * 10 + 10)); 
                 }
             }
         }
@@ -141,11 +141,11 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             if(!avoidWeekend){
                 //周末降低优先级
                 for(int i = 6; i <= 7; i++){
-                    heap.add(new Arrangement(i, "1,2", (record[i][1] + record[i][2]) / 2.0 * 10));
-                    heap.add(new Arrangement(i, "3,4", (record[i][3] + record[i][4]) / 2.0 * 10));
-                    heap.add(new Arrangement(i, "6,7", (record[i][6] + record[i][7]) / 2.0 * 10));
-                    heap.add(new Arrangement(i, "7,8", (record[i][7] + record[i][8]) / 2.0 * 10));
-                    heap.add(new Arrangement(i, "11,12", (record[i][11] + record[i][12]) / 2.0 * 10));
+                    heap.add(new Arrangement(i, "1,2", (record[i][1] + record[i][2]) / 2.0 * 10 + 10));
+                    heap.add(new Arrangement(i, "3,4", (record[i][3] + record[i][4]) / 2.0 * 10 + 10));
+                    heap.add(new Arrangement(i, "6,7", (record[i][6] + record[i][7]) / 2.0 * 10 + 10));
+                    heap.add(new Arrangement(i, "7,8", (record[i][7] + record[i][8]) / 2.0 * 10 + 10));
+                    heap.add(new Arrangement(i, "11,12", (record[i][11] + record[i][12]) / 2.0 * 10 + 10));
                 }
             }
         }
@@ -159,7 +159,7 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             }
             for(int i = 6; i <= 7; i++){
                 for(int j = 1; j <= 13; j++){
-                    heap.add(new Arrangement(i, String.valueOf(j), (record[i][j]) / 1.0 * 10));
+                    heap.add(new Arrangement(i, String.valueOf(j), (record[i][j]) / 1.0 * 10 + 10));
                 }
             }
         }
@@ -174,8 +174,8 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             if(!avoidWeekend){
                 //周末降低优先级
                 for(int i = 6; i <= 7; i++){
-                    heap.add(new Arrangement(i, "1,2,3,4", (record[i][1] + record[i][2] + record[i][3] + record[i][4]) / 4.0 * 10));
-                    heap.add(new Arrangement(i, "6,7,8,9", (record[i][6] + record[i][7] + record[i][8] + record[i][9]) / 4.0 * 10));
+                    heap.add(new Arrangement(i, "1,2,3,4", (record[i][1] + record[i][2] + record[i][3] + record[i][4]) / 4.0 * 10 + 10));
+                    heap.add(new Arrangement(i, "6,7,8,9", (record[i][6] + record[i][7] + record[i][8] + record[i][9]) / 4.0 * 10 + 10));
                 }
             }
         }
@@ -190,8 +190,8 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             if(!avoidWeekend){
                 //周末降低优先级
                 for(int i = 6; i <= 7; i++){
-                    heap.add(new Arrangement(i, "1,2,3,4,5", (record[i][1] + record[i][2] + record[i][3] + record[i][4] + record[i][5]) / 5.0 * 10));
-                    heap.add(new Arrangement(i, "6,7,8,9,10", (record[i][6] + record[i][7] + record[i][8] + record[i][9] + record[i][10]) / 5.0 * 10));
+                    heap.add(new Arrangement(i, "1,2,3,4,5", (record[i][1] + record[i][2] + record[i][3] + record[i][4] + record[i][5]) / 5.0 * 10 + 10));
+                    heap.add(new Arrangement(i, "6,7,8,9,10", (record[i][6] + record[i][7] + record[i][8] + record[i][9] + record[i][10]) / 5.0 * 10 + 10));
                 }
             }
         }
@@ -328,7 +328,34 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
             }
         }
         logger.info("安排教室完成");
-        return sections;
+        
+        // 合并相同课程号、相同开课学年和学期的 section
+        Map<String, List<Section>> sectionGroups = new HashMap<>();
+        for (Section section : sections) {
+            String key = section.getCourseId() + "_" + section.getSemester() + "_" + section.getSecYear();
+            sectionGroups.computeIfAbsent(key, k -> new ArrayList<>()).add(section);
+        }
+        
+        List<Section> mergedSections = new ArrayList<>();
+        for (List<Section> group : sectionGroups.values()) {
+            if (group.size() == 1) {
+                mergedSections.add(group.get(0));
+            } else {
+                // 合并多个 section
+                Section mergedSection = group.get(0); // 使用第一个作为基础
+                StringBuilder mergedTime = new StringBuilder(mergedSection.getSecTime());
+                
+                for (int i = 1; i < group.size(); i++) {
+                    mergedTime.append("; ").append(group.get(i).getSecTime());
+                }
+                
+                mergedSection.setSecTime(mergedTime.toString());
+                mergedSections.add(mergedSection);
+            }
+        }
+        logger.info("合并相同课程的section完成");
+        
+        return mergedSections;
     }
 
     private void addSections(List<Section> sections){
@@ -391,6 +418,7 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
         try{
             List<Section> sections = arrangeCourse(courses, filter);
             addSections(sections);
+            return;
         }
         catch(Exception e){
             logger.error("第一次排课失败: {}", e.getMessage());
@@ -421,6 +449,17 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                 courses.add(course);
             }
         }
+
+        try{
+            List<Section> sections = arrangeCourse(courses, filter);
+            addSections(sections);
+            return;
+        }
+        catch(Exception e){
+            logger.error("第二次排课失败: {}", e.getMessage());
+        }
+
+        throw new RuntimeException("排课失败");
     }
 
     private String getCourseCategory(int courseId){
