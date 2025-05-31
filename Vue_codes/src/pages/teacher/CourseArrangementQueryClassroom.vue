@@ -183,7 +183,6 @@ const handleQuery = async () => {
   loading.value = true;
   scheduleData.value = [];
   try {
-    // 1. 直接从 sections.json 获取数据
     const response = await axios.get('/arrange/api/sections/query', {
       params: {
         classroom_id: filterForm.classroomId,
@@ -192,7 +191,6 @@ const handleQuery = async () => {
       }
     });
     if (response.data && response.data.length > 0) {
-      // 2. 筛选出所选教室的数据
       const filteredData = response.data.filter(item =>
         item.classroomId.toString() === filterForm.classroomId
       );
@@ -202,11 +200,12 @@ const handleQuery = async () => {
         return;
       }
 
-      // 3. 处理筛选后的数据
       scheduleData.value = filteredData.map(item => {
         const processedData = [];
         const times = item.secTime.split(';').map(t => t.trim());
         const timeGroups = {};
+        
+        // 处理每个时间段
         times.forEach(time => {
           const [dayOfWeekStr, timeNum] = time.split(' ');
           if (!timeGroups[dayOfWeekStr]) {
@@ -215,11 +214,39 @@ const handleQuery = async () => {
           timeGroups[dayOfWeekStr].push(parseInt(timeNum));
         });
 
+        // 对每个工作日的时间段进行处理
         Object.entries(timeGroups).forEach(([dayOfWeekStr, timeNums]) => {
           const day = getDayOfWeekFromString(dayOfWeekStr);
-          const start = Math.min(...timeNums);
-          const end = Math.max(...timeNums);
-
+          
+          // 对时间数字进行排序
+          timeNums.sort((a, b) => a - b);
+          
+          // 识别连续的时间段
+          let start = timeNums[0];
+          let end = timeNums[0];
+          
+          for (let i = 1; i < timeNums.length; i++) {
+            if (timeNums[i] === end + 1) {
+              end = timeNums[i];
+            } else {
+              // 当前时间段结束，创建新的课程记录
+              processedData.push({
+                id: item.id,
+                courseId: item.courseId,
+                classroomId: item.classroomId,
+                day: day,
+                timeSlot: { start, end },
+                courseName: item.courseName,
+                teacher: item.teacherName || '未指定教师',
+              });
+              
+              // 开始新的时间段
+              start = timeNums[i];
+              end = timeNums[i];
+            }
+          }
+          
+          // 添加最后一个时间段
           processedData.push({
             id: item.id,
             courseId: item.courseId,
@@ -230,6 +257,7 @@ const handleQuery = async () => {
             teacher: item.teacherName || '未指定教师',
           });
         });
+        
         return processedData;
       }).flat();
 
