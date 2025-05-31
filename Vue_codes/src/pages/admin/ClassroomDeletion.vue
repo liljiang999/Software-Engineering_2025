@@ -60,8 +60,8 @@
           <template #default="scope">
             <el-button
               type="danger"
-              @click="handleDelete(scope.$index, scope.row.classroom_id)"
-              :loading="deleteLoading === scope.row.classroom_id"
+              @click="handleDelete(scope.$index, scope.row.id)"
+              :loading="deleteLoading === scope.row.id"
             >
               删除
             </el-button>
@@ -78,10 +78,10 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import axios from 'axios';
 
 const filterForm = reactive({
-  classroom_id: '',
-  classroom_location: '',
-  classroom_capacity: '',
-  classroom_category: '',
+  id: '',
+  location: '',
+  capacity: '',
+  category: '',
 });
 
 const filterLoading = ref(false);

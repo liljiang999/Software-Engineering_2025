@@ -28,7 +28,7 @@ public class AdminLessonController {
     private LessonScheduler lessonScheduler;
 
     // 管理员权限：添加教室
-    @PostMapping("/arrange/api/admin/classrooms")
+    @PostMapping("/arrange/api/classrooms")
     public ResponseEntity<?> addClassroom(@RequestBody Classroom classroom) {
         try {
             logger.debug("admin controller add classroom: " + classroom);
@@ -43,7 +43,7 @@ public class AdminLessonController {
     }
 
     // 管理员权限：更新教室
-    @PutMapping("/arrange/api/admin/classrooms/{classroom_id}")
+    @PutMapping("/arrange/api/classrooms/{classroom_id}")
     public ResponseEntity<?> updateClassroom(@PathVariable("classroom_id") int classroomId, @RequestBody Classroom updateInfo) {
         try {
             logger.debug("admin controller update classroom: " + updateInfo);
@@ -58,7 +58,7 @@ public class AdminLessonController {
     }
 
     // 管理员权限：删除教室
-    @DeleteMapping("/arrange/api/admin/classrooms/{classroom_id}")
+    @DeleteMapping("/arrange/api/classrooms/{classroom_id}")
     public ResponseEntity<?> deleteClassroom(@PathVariable("classroom_id") int classroomId) {
         try {
             logger.debug("admin controller delete classroom: " + classroomId);
@@ -73,7 +73,7 @@ public class AdminLessonController {
     }
 
     // 管理员权限：生成课表
-    @PostMapping("/arrange/api/admin/schedules/generate")
+    @PostMapping("/arrange/api/schedules/generate")
     public ResponseEntity<?> generateSchedule(@RequestBody LessonScheduleFilter filter) {
         try {   
             logger.debug("admin controller generate schedule: " + filter);
@@ -88,7 +88,7 @@ public class AdminLessonController {
     }
 
     // 管理员权限：添加课程安排
-    @PostMapping("/arrange/api/admin/sections")
+    @PostMapping("/arrange/api/sections")
     public ResponseEntity<?> addSchedule(@RequestBody Section section) {
         try {
             logger.debug("admin controller add schedule: " + section);
@@ -103,7 +103,7 @@ public class AdminLessonController {
     }
 
     // 管理员权限：更新课程安排
-    @PutMapping("/arrange/api/admin/sections/{section_id}")
+    @PutMapping("/arrange/api/sections/{section_id}")
     public ResponseEntity<?> updateSchedule(@PathVariable("section_id") int sectionId, @RequestBody Section updateInfo) {
         try {
             logger.debug("admin controller update section: " + updateInfo);
@@ -118,7 +118,7 @@ public class AdminLessonController {
     }
     
     // 管理员权限：删除课程安排
-    @DeleteMapping("/arrange/api/admin/sections/{section_id}")
+    @DeleteMapping("/arrange/api/sections/{section_id}")
     public ResponseEntity<?> deleteSchedule(@PathVariable("section_id") int sectionId) {
         try {
             logger.debug("admin controller delete schedule: " + sectionId);
@@ -133,7 +133,7 @@ public class AdminLessonController {
     }
 
     // 管理员权限：检查课表
-    @GetMapping("/arrange/api/admin/sections/check")
+    @GetMapping("/arrange/api/sections/check")
     public ResponseEntity<?> checkSchedule(@RequestBody String semester, @RequestBody int secYear) {
         try {
             logger.debug("admin controller check schedule: " + semester + " " + secYear);
