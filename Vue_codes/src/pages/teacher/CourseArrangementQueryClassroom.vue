@@ -226,7 +226,9 @@ const handleQuery = async () => {
           let end = timeNums[0];
           
           for (let i = 1; i < timeNums.length; i++) {
-            if (timeNums[i] === end + 1) {
+            // 检查是否是午休时间（第5节和第6节之间）或晚上休息时间（第10节和第11节之间）
+            if (timeNums[i] === end + 1 && 
+                !((end === 5 && timeNums[i] === 6) || (end === 10 && timeNums[i] === 11))) {
               end = timeNums[i];
             } else {
               // 当前时间段结束，创建新的课程记录

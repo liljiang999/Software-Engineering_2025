@@ -169,50 +169,67 @@ const handleQuery = async () => {
       scheduleData.value = responseData.flatMap(item => {
         const { secTime, courseName, classroomId, classroomName } = item;
         const timeEntries = secTime.split(';').map(entry => entry.trim());
-        return timeEntries.map(entry => {
+        
+        // 按天分组处理时间段
+        const dayGroups = {};
+        timeEntries.forEach(entry => {
           const [dayStr, periodStr] = entry.split(' ');
           const period = parseInt(periodStr);
-          const timeSlot = getTimeSlotByPeriod(period);
-          const day = getDayOfWeekFromString(dayStr);
-
-          if (timeSlot && day) {
-            return {
-              teacherId: currentTeacherId.value,
-              day: day,
-              timeSlot: { start: period, end: period }, // 假设每节课持续一个 timeSlot
-              courseName: courseName,
-              classroomId: classroomId,
-              classroomName: classroomName,
-            };
+          if (!dayGroups[dayStr]) {
+            dayGroups[dayStr] = [];
           }
-          return null;
-        }).filter(Boolean); // 过滤掉处理失败的数据
+          dayGroups[dayStr].push(period);
+        });
+
+        // 处理每天的时间段
+        return Object.entries(dayGroups).map(([dayStr, periods]) => {
+          // 对时间段进行排序
+          periods.sort((a, b) => a - b);
+          
+          // 找出连续的时间段
+          const continuousPeriods = [];
+          let currentGroup = [periods[0]];
+          
+          for (let i = 1; i < periods.length; i++) {
+            // 检查是否跨过午休时间（第5节和第6节之间）或晚上休息时间（第10节和第11节之间）
+            const isLunchBreak = periods[i-1] === 5 && periods[i] === 6;
+            const isEveningBreak = periods[i-1] === 10 && periods[i] === 11;
+            
+            if (periods[i] === periods[i-1] + 1 && !isLunchBreak && !isEveningBreak) {
+              currentGroup.push(periods[i]);
+            } else {
+              continuousPeriods.push([...currentGroup]);
+              currentGroup = [periods[i]];
+            }
+          }
+          continuousPeriods.push(currentGroup);
+
+          // 为每个连续时间段创建课程记录
+          return continuousPeriods.map(periodGroup => {
+            const startPeriod = periodGroup[0];
+            const endPeriod = periodGroup[periodGroup.length - 1];
+            const day = getDayOfWeekFromString(dayStr);
+
+            if (day) {
+              return {
+                teacherId: currentTeacherId.value,
+                day: day,
+                timeSlot: { start: startPeriod, end: endPeriod },
+                courseName: courseName,
+                classroomId: classroomId,
+                classroomName: classroomName,
+              };
+            }
+            return null;
+          });
+        }).flat().filter(Boolean);
       });
 
-      // 处理连堂课程，合并 rowspan
-      scheduleData.value.forEach((course, index) => {
-        if (!course || course._merged) return; // 跳过已处理或空课程
-
-        let rowspan = 1;
-        for (let i = index + 1; i < scheduleData.value.length; i++) {
-          const nextCourse = scheduleData.value[i];
-          if (
-            nextCourse &&
-            !nextCourse._merged &&
-            nextCourse.day === course.day &&
-            nextCourse.timeSlot.start === course.timeSlot.end + 1 &&
-            nextCourse.courseName === course.courseName &&
-            nextCourse.classroomId === course.classroomId &&
-            nextCourse.teacherId === course.teacherId
-          ) {
-            rowspan++;
-            course.timeSlot.end = nextCourse.timeSlot.end;
-            nextCourse._merged = true; // 标记为已合并
-          } else {
-            break;
-          }
+      // 移除处理连堂课程的逻辑，因为已经在上面处理过了
+      scheduleData.value.forEach(course => {
+        if (course) {
+          course._rowspan = course.timeSlot.end - course.timeSlot.start + 1;
         }
-        course._rowspan = rowspan;
       });
 
       ElMessage.success('查询成功');
