@@ -101,7 +101,9 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
         }
     }
 
-    private void addPossibleTimeToHeap(PriorityQueue<Arrangement> heap,int hoursPerWeek, int[][] record, boolean avoidWeekend) {
+    private void addPossibleTimeToHeap(PriorityQueue<Arrangement> heap,int hoursPerWeek, int[][] record, boolean avoidWeekend, String category) {
+        // 先判断是否为体育类课程
+        boolean isPE = ("体育".equals(category) || "PE".equals(category));
         //根据连堂节数判断可以安排的时间
         //1.连堂三节，可以安排的时间为：
         //   - 上午：3 4 5
@@ -109,9 +111,11 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
         //   - 晚上：11 12 13
         if(hoursPerWeek == 3){
             for(int i = 1; i <= 5; i++){
+                if (!isPE) {
+                    heap.add(new Arrangement(i, "11,12,13", (record[i][11] + record[i][12] + record[i][13]) / 3.0));
+                }
                 heap.add(new Arrangement(i, "3,4,5", (record[i][3] + record[i][4] + record[i][5]) / 3.0));
                 heap.add(new Arrangement(i, "6,7,8", (record[i][6] + record[i][7] + record[i][8]) / 3.0));
-                heap.add(new Arrangement(i, "11,12,13", (record[i][11] + record[i][12] + record[i][13]) / 3.0));
             }
             if(!avoidWeekend){
                 //周末降低优先级
@@ -132,11 +136,13 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
         //   - 晚上：11 12
         if(hoursPerWeek == 2){
             for(int i = 1; i <= 5; i++){
+                if (!isPE) {
+                    heap.add(new Arrangement(i, "11,12", (record[i][11] + record[i][12]) / 2.0));
+                }
                 heap.add(new Arrangement(i, "1,2", (record[i][1] + record[i][2]) / 2.0));
                 heap.add(new Arrangement(i, "3,4", (record[i][3] + record[i][4]) / 2.0));
                 heap.add(new Arrangement(i, "6,7", (record[i][6] + record[i][7]) / 2.0));
                 heap.add(new Arrangement(i, "7,8", (record[i][7] + record[i][8]) / 2.0));
-                heap.add(new Arrangement(i, "11,12", (record[i][11] + record[i][12]) / 2.0));
             }
             if(!avoidWeekend){
                 //周末降低优先级
@@ -152,11 +158,13 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
         //3.连堂一节，可以安排的时间为：
         //   1-13 均可
         if(hoursPerWeek == 1){
-            for(int i = 1; i <= 5; i++){
-                for(int j = 1; j <= 13; j++){
-                    heap.add(new Arrangement(i, String.valueOf(j), (record[i][j]) / 1.0));
-                }
+            for (int i = 1; i <= 5; i++) {
+            for (int j = 1; j <= 13; j++) {
+                // 体育类课程跳过11-13节
+                if (isPE && (j == 11 || j == 12 || j == 13)) continue;
+                heap.add(new Arrangement(i, String.valueOf(j), record[i][j]));
             }
+        }
             for(int i = 6; i <= 7; i++){
                 for(int j = 1; j <= 13; j++){
                     heap.add(new Arrangement(i, String.valueOf(j), (record[i][j]) / 1.0 * 10 + 10));
@@ -237,8 +245,9 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
                     }
                 }
             }
+            String category = course.getCategory(); // 获取课程类别
             var heap = new PriorityQueue<Arrangement>();
-            addPossibleTimeToHeap(heap, course.getHoursPerWeek(), record, avoidWeekend);
+            addPossibleTimeToHeap(heap, course.getHoursPerWeek(), record, avoidWeekend, category);
             boolean successArrange = false;
             do {
                 Arrangement times = heap.poll();
@@ -518,8 +527,23 @@ public class LessonScheduler implements AutoManualScheduler, ClassroomManager {
         Map<Integer, boolean[][]> teacherTimeMap = new HashMap<>();
         Map<Integer, boolean[][]> classroomTimeMap = new HashMap<>();
         for(Section section : sectionList){
+            String category = getCourseCategory(section.getCourseId());
+            boolean isPE = "体育".equals(category) || "PE".equals(category);
             var teacherId = section.getCourseId();
             var classroomId = section.getClassroomId();
+            if (isPE) {
+                var dayStringList = section.getSecTime().split("; ");
+                for (String dayString : dayStringList) {
+                    var timeList = dayString.split(" ")[1].split(",");
+                    for (String time : timeList) {
+                        int period = Integer.parseInt(time);
+                        if (period == 11 || period == 12 || period == 13) {
+                            String courseName = getCourseNameByCourseId(section.getCourseId());
+                            return "体育类课程'" + courseName + "'被安排在禁止时间段(11-13节)";
+                        }
+                    }
+                }
+            }
             if(!teacherTimeMap.containsKey(teacherId)){
                 teacherTimeMap.put(teacherId, new boolean[8][20]);
                 boolean[][] teacherTime = teacherTimeMap.get(teacherId);
